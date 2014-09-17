@@ -1,18 +1,113 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Travis J. Sanders personal blog</title>
-    <description>Code and thoughts and fictions
+    <title>Travis J. Sanders writes</title>
+    <description>code and thoughts and fictions
 </description>
     <link>http://tjsander.github.io/</link>
     <atom:link href="http://tjsander.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Tue, 16 Sep 2014 18:38:49 -0700</pubDate>
-    <lastBuildDate>Tue, 16 Sep 2014 18:38:49 -0700</lastBuildDate>
+    <pubDate>Tue, 16 Sep 2014 23:09:14 -0700</pubDate>
+    <lastBuildDate>Tue, 16 Sep 2014 23:09:14 -0700</lastBuildDate>
     <generator>Jekyll v2.4.0</generator>
     
       <item>
+        <title>Getting Started with Twitter in Temboo [PHP]</title>
+        <description>&lt;h3&gt;Third-party APIs are not easy/fun to work with&lt;/h3&gt;
+
+&lt;p&gt;From what little web-development experience I have, I can tell that learning new APIs can be a complicated, frustrating process. There doesn&amp;#39;t seem to be a universal access procedure, and the quality of documentation varies greatly.&lt;/p&gt;
+
+&lt;p&gt;Temboo is a cloud-based service that handles all of the API mess for you. With over 100 APIs and 1000+ &amp;quot;Choreos&amp;quot; (calls to receive specific information), Temboo is a powerful tool to quickly and easily retrieve information from otherwise complicated third parties.&lt;/p&gt;
+
+&lt;p&gt;The following is a simple demonstration of how to retrieve and display tweets based on a search query.&lt;/p&gt;
+
+&lt;h3&gt;Access your Twitter API keys&lt;/h3&gt;
+
+&lt;p&gt;Log in to &lt;a href=&quot;https://apps.twitter.com/&quot;&gt;apps.twitter.com&lt;/a&gt; using your Twitter ID.
+Click Create New App and fill in the required information.
+Inside of the app you created, navigate to API Keys and make sure you have access to API key, API secret, Access token and Access token secret.&lt;/p&gt;
+
+&lt;p&gt;Normally, at this point, you would dig through the dev.twitter.com documentation to figure out how to make a proper AJAX call as well as deal with the OAuth procedure, what sort of information the call would return, and how to parse that information.&lt;/p&gt;
+
+&lt;p&gt;Using Temboo greatly simplifies this process.&lt;/p&gt;
+
+&lt;h3&gt;Setup Temboo&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://temboo.com/signup&quot;&gt;Sign up&lt;/a&gt; for a Temboo account.
+&lt;a href=&quot;https://temboo.com/sdk/php&quot;&gt;Download&lt;/a&gt; the Temboo PHP SDK and unzip it to your project folder.
+To include the library, simply add the following line to your php: &lt;code&gt;require &amp;#39;php-sdk/src/temboo.php&amp;#39;;&lt;/code&gt;
+Now, navigate to Temboo . Library . Twitter . Search . &lt;a href=&quot;https://temboo.com/library/Library/Twitter/Search/Tweets/&quot;&gt;Tweets&lt;/a&gt; to auto-generate php, or copy the code below and fill in your Temboo and Twitter API keys.
+You can find your Temboo access information &lt;a href=&quot;https://temboo.com/account/applications/&quot;&gt;here.&lt;/a&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-php&quot; data-lang=&quot;php&quot;&gt;&lt;span class=&quot;x&quot;&gt;$session = new Temboo_Session(&amp;quot;YOUR_USERNAME&amp;quot;, &amp;quot;TEMBOO_APPNAME&amp;quot;, &amp;quot;YOUR_ACCESS_KEY&amp;quot;);&lt;/span&gt;
+&lt;span class=&quot;x&quot;&gt;$tweets = new Twitter_Search_Tweets($session);&lt;/span&gt;
+
+&lt;span class=&quot;x&quot;&gt;// Get an input object for the Choreo&lt;/span&gt;
+&lt;span class=&quot;x&quot;&gt;$tweetsInputs = $tweets-&amp;gt;newInputs();&lt;/span&gt;
+
+&lt;span class=&quot;x&quot;&gt;// Set inputs&lt;/span&gt;
+&lt;span class=&quot;x&quot;&gt;$tweetsInputs-&amp;gt;setCount(&amp;quot;1-200&amp;quot;)-&amp;gt;setAccessToken(&amp;quot;CHANGEME&amp;quot;)-&amp;gt;setQuery(&amp;quot;SEARCH_TERM&amp;quot;)-&amp;gt;setAccessTokenSecret(&amp;quot;CHANGEME&amp;quot;)-&amp;gt;setConsumerSecret(&amp;quot;CHANGEME&amp;quot;)-&amp;gt;setConsumerKey(&amp;quot;CHANGEME&amp;quot;);&lt;/span&gt;
+
+&lt;span class=&quot;x&quot;&gt;// Execute Choreo and get results&lt;/span&gt;
+&lt;span class=&quot;x&quot;&gt;$tweetsResults = $tweets-&amp;gt;execute($tweetsInputs)-&amp;gt;getResults();&lt;/span&gt;
+
+&lt;span class=&quot;x&quot;&gt;// Parse JSON response&lt;/span&gt;
+&lt;span class=&quot;x&quot;&gt;$results = json_decode($tweetsResults-&amp;gt;getResponse());&lt;/span&gt;
+
+&lt;span class=&quot;x&quot;&gt;// Get statuses array&lt;/span&gt;
+&lt;span class=&quot;x&quot;&gt;$statuses = $results-&amp;gt;statuses;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3&gt;Displaying the returned information&lt;/h3&gt;
+
+&lt;p&gt;After the above code, an array of Tweets and associated information is stored in $statuses and can be accessed like any other PHP array. From there, it&amp;#39;s a simple matter of looping through the elements in the statuses array, collecting the information you wish to print, and formatting the output to your liking. There&amp;#39;s even a Temboo Choreo to easily store JSON responses to a MySQL database.&lt;/p&gt;
+
+&lt;p&gt;The &lt;a href=&quot;https://temboo.com/library/Library/Twitter/Search/Tweets/&quot;&gt;Temboo library&lt;/a&gt; where the code was generated contains a sample JSON response to this choreo, which can be copied and pasted into a &lt;a href=&quot;http://www.jsoneditoronline.org/&quot;&gt;JSON Editor&lt;/a&gt; for easy navigation and searching to find the Tweet attributes you wish to use.&lt;/p&gt;
+
+&lt;p&gt;The elements we&amp;#39;re interested in are stored at &lt;code&gt;$statuses[$index]-&amp;gt;text&lt;/code&gt; and &lt;code&gt;$statuses[$index]-&amp;gt;user-&amp;gt;screen_name&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;There&amp;#39;s plenty out there on &lt;a href=&quot;http://tutorialzine.com/2011/08/display-favorite-tweets-php-css/&quot;&gt;formatting Twitter strings to look pretty,&lt;/a&gt; but that&amp;#39;s outside of the scope of this writeup.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-php&quot; data-lang=&quot;php&quot;&gt;&lt;span class=&quot;x&quot;&gt;for ($i=0; $i&amp;lt;10; $i++) {&lt;/span&gt;
+&lt;span class=&quot;x&quot;&gt;    // Get first status&lt;/span&gt;
+&lt;span class=&quot;x&quot;&gt;    $status = $statuses[$i];&lt;/span&gt;
+
+&lt;span class=&quot;x&quot;&gt;    // Get the text object within the first item&lt;/span&gt;
+&lt;span class=&quot;x&quot;&gt;    $text = $status-&amp;gt;text;&lt;/span&gt;
+
+&lt;span class=&quot;x&quot;&gt;    // Get the screen name within the first item&lt;/span&gt;
+&lt;span class=&quot;x&quot;&gt;    $user = $status-&amp;gt;user-&amp;gt;screen_name;&lt;/span&gt;
+&lt;span class=&quot;x&quot;&gt;    echo $user . &amp;#39;: &amp;#39; . $text;&lt;/span&gt;
+&lt;span class=&quot;x&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Running the &amp;#39;php&amp;#39; command on your file in the command line should produce results that look like this:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/console_bat.png&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;If there are any authentication errors, they should show up in your console. Check your API keys and regenerate if necessary.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Throw that php into a panel with some fancy Bootstrap CSS, and you&amp;#39;ve got yourself a pretty good-looking display of tweets.&lt;/p&gt;
+
+&lt;h3&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;Temboo free accounts are limited to 1000 calls and 512 MB a month, so I wouldn&amp;#39;t recommend it for sites that receive a lot of hits or applications that are going to be making more than 1 call every 30 minutes on average, unless you&amp;#39;re willing to pay $10/month for 10,000 calls. Just playing around with my simple app, I ran up 91 calls in a couple of days with testing.&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;m currently using php session caching to reduce the number of calls the #batfleck code makes. In fact, the Twitter REST API documentation states that Twitter limits search queries to 180 per 15 minutes and recommends caching to avoid limitations.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 16 Sep 2014 00:00:00 -0700</pubDate>
+        <link>http://tjsander.github.io/temboo-twitter.html</link>
+        <guid isPermaLink="true">http://tjsander.github.io/temboo-twitter.html</guid>
+        
+        <category>code</category>
+        
+        <category>temboo</category>
+        
+        
+      </item>
+    
+      <item>
         <title>Dumb Watches</title>
-        <description>&lt;p&gt;I started wearing a watch four years ago, about the time when everyone else stopped. As a teacher time management was very important to my job, and it was not appropriate to use my cellphone during class time. I bought a Casio F-105W (THE ILLUMINATOR) for about 1200 JPY and it&amp;#39;s been a permanent fixture on my wrist ever since.&lt;/p&gt;
+        <description>&lt;p&gt;I started wearing a watch four years ago, about the time when everyone else stopped. As a teacher time management was very important to my job, and it was not appropriate to use my cellphone during class time. I bought a Casio F-105W (THE ILLUMINATOR) for about 1200 JPY, and it&amp;#39;s been a permanent fixture on my wrist ever since.&lt;/p&gt;
 
 &lt;p&gt;The Casio F105W-1A has a three-button UI. It tells time in 24H or 12H. It has an alarm and a stopwatch. It&amp;#39;s water resistant. The killer app is a green-glowing backlight.&lt;/p&gt;
 
@@ -38,7 +133,7 @@
 
 &lt;p&gt;I&amp;#39;d like to preemptively thank everyone who is going to purchase the Apple Watch for funding the Apple Watch 2.&lt;/p&gt;
 
-&lt;p&gt;Image by &lt;a href=&quot;https://www.flickr.com/photos/onigiri_chang/&quot;&gt;onigiri_chang&lt;/a&gt;&lt;/p&gt;
+&lt;h6&gt;Image by &lt;a href=&quot;https://www.flickr.com/photos/onigiri_chang/&quot;&gt;onigiri_chang&lt;/a&gt;&lt;/h6&gt;
 </description>
         <pubDate>Mon, 15 Sep 2014 00:00:00 -0700</pubDate>
         <link>http://tjsander.github.io/dumb-watches.html</link>
@@ -57,7 +152,7 @@
         <title>My First Jekyll Post!</title>
         <description>&lt;h4&gt;Testing 12345...&lt;/h4&gt;
 
-&lt;p&gt;Hello world! Here is some C code!&lt;/p&gt;
+&lt;p&gt;Hello world! Here is some C code! (This is a sandbox post.)&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;sieve_primes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;

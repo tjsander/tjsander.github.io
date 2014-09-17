@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <!-- (1) Optimize for mobile versions: http://goo.gl/EOpFl -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- (1) force latest IE rendering engine: bit.ly/1c8EiC9 -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Getting Started with Twitter in Temboo [PHP]</title>
+  <meta name="description" content="code and thoughts and fictions
+" />
+
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="MobileOptimized" content="320" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="canonical" href="http://tjsander.github.io/temboo-twitter.html">
+
+  <link rel="shortcut icon" href="/assets/images/favicon.ico">
+<!--  <link rel="stylesheet" href=""> -->
+  <link rel="stylesheet" href="http://brick.a.ssl.fastly.net/Linux+Libertine:400,400i,700,700i/Open+Sans:400,400i,700,700i">
+  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css" >
+
+  <link rel="stylesheet" type="text/css" media="screen" href="/css/main.css" />
+  <link rel="stylesheet" type="text/css" media="print" href="/css/print.css" />
+  <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+
+  <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+  <script type="text/javascript" src="/assets/js/index.js"></script>
+  <script type="text/javascript" src="/assets/js/readingTime.min.js"></script>
+</head>
+
+  <body itemscope itemtype="http://schema.org/Article">
+    <!-- header start -->
+
+<a href="http://tjsander.github.io" class="logo-readium"><span class="logo" style="background-image: url(/assets/images/3button.png)"></span></a>
+
+<!-- header end -->
+
+    <main class="content" role="main">
+      <article class="post">
+        
+        <div class="noarticleimage">
+          <div class="post-meta">
+            <h1 class="post-title">Getting Started with Twitter in Temboo [PHP]</h1>
+            <div class="cf post-meta-text">
+              <div class="author-image" style="background-image: url(/assets/images/travisedit.png)">Blog Logo</div>
+              <h4 class="author-name" itemprop="author" itemscope itemtype="http://schema.org/Person"></h4>
+              on
+              <time datetime="2014-09-16T00:00:00-07:00">16 Sep 2014</time>
+              <!-- , tagged on <span class="post-tag-">, <a href="/tag/"></a></span> -->
+            </div>
+          </div>
+        </div>
+        <br>
+        <br>
+        <br>
+        
+        <section class="post-content">
+          <div class="post-reading">
+            <span class="post-reading-time"></span> read
+          </div>
+          <a name="topofpage"></a>
+          <h3>Third-party APIs are not easy/fun to work with</h3>
+
+<p>From what little web-development experience I have, I can tell that learning new APIs can be a complicated, frustrating process. There doesn&#39;t seem to be a universal access procedure, and the quality of documentation varies greatly.</p>
+
+<p>Temboo is a cloud-based service that handles all of the API mess for you. With over 100 APIs and 1000+ &quot;Choreos&quot; (calls to receive specific information), Temboo is a powerful tool to quickly and easily retrieve information from otherwise complicated third parties.</p>
+
+<p>The following is a simple demonstration of how to retrieve and display tweets based on a search query.</p>
+
+<h3>Access your Twitter API keys</h3>
+
+<p>Log in to <a href="https://apps.twitter.com/">apps.twitter.com</a> using your Twitter ID.
+Click Create New App and fill in the required information.
+Inside of the app you created, navigate to API Keys and make sure you have access to API key, API secret, Access token and Access token secret.</p>
+
+<p>Normally, at this point, you would dig through the dev.twitter.com documentation to figure out how to make a proper AJAX call as well as deal with the OAuth procedure, what sort of information the call would return, and how to parse that information.</p>
+
+<p>Using Temboo greatly simplifies this process.</p>
+
+<h3>Setup Temboo</h3>
+
+<p><a href="https://temboo.com/signup">Sign up</a> for a Temboo account.
+<a href="https://temboo.com/sdk/php">Download</a> the Temboo PHP SDK and unzip it to your project folder.
+To include the library, simply add the following line to your php: <code>require &#39;php-sdk/src/temboo.php&#39;;</code>
+Now, navigate to Temboo . Library . Twitter . Search . <a href="https://temboo.com/library/Library/Twitter/Search/Tweets/">Tweets</a> to auto-generate php, or copy the code below and fill in your Temboo and Twitter API keys.
+You can find your Temboo access information <a href="https://temboo.com/account/applications/">here.</a></p>
+
+<div class="highlight"><pre><code class="language-php" data-lang="php"><span class="x">$session = new Temboo_Session(&quot;YOUR_USERNAME&quot;, &quot;TEMBOO_APPNAME&quot;, &quot;YOUR_ACCESS_KEY&quot;);</span>
+<span class="x">$tweets = new Twitter_Search_Tweets($session);</span>
+
+<span class="x">// Get an input object for the Choreo</span>
+<span class="x">$tweetsInputs = $tweets-&gt;newInputs();</span>
+
+<span class="x">// Set inputs</span>
+<span class="x">$tweetsInputs-&gt;setCount(&quot;1-200&quot;)-&gt;setAccessToken(&quot;CHANGEME&quot;)-&gt;setQuery(&quot;SEARCH_TERM&quot;)-&gt;setAccessTokenSecret(&quot;CHANGEME&quot;)-&gt;setConsumerSecret(&quot;CHANGEME&quot;)-&gt;setConsumerKey(&quot;CHANGEME&quot;);</span>
+
+<span class="x">// Execute Choreo and get results</span>
+<span class="x">$tweetsResults = $tweets-&gt;execute($tweetsInputs)-&gt;getResults();</span>
+
+<span class="x">// Parse JSON response</span>
+<span class="x">$results = json_decode($tweetsResults-&gt;getResponse());</span>
+
+<span class="x">// Get statuses array</span>
+<span class="x">$statuses = $results-&gt;statuses;</span></code></pre></div>
+
+<h3>Displaying the returned information</h3>
+
+<p>After the above code, an array of Tweets and associated information is stored in $statuses and can be accessed like any other PHP array. From there, it&#39;s a simple matter of looping through the elements in the statuses array, collecting the information you wish to print, and formatting the output to your liking. There&#39;s even a Temboo Choreo to easily store JSON responses to a MySQL database.</p>
+
+<p>The <a href="https://temboo.com/library/Library/Twitter/Search/Tweets/">Temboo library</a> where the code was generated contains a sample JSON response to this choreo, which can be copied and pasted into a <a href="http://www.jsoneditoronline.org/">JSON Editor</a> for easy navigation and searching to find the Tweet attributes you wish to use.</p>
+
+<p>The elements we&#39;re interested in are stored at <code>$statuses[$index]-&gt;text</code> and <code>$statuses[$index]-&gt;user-&gt;screen_name</code></p>
+
+<p>There&#39;s plenty out there on <a href="http://tutorialzine.com/2011/08/display-favorite-tweets-php-css/">formatting Twitter strings to look pretty,</a> but that&#39;s outside of the scope of this writeup.</p>
+
+<div class="highlight"><pre><code class="language-php" data-lang="php"><span class="x">for ($i=0; $i&lt;10; $i++) {</span>
+<span class="x">    // Get first status</span>
+<span class="x">    $status = $statuses[$i];</span>
+
+<span class="x">    // Get the text object within the first item</span>
+<span class="x">    $text = $status-&gt;text;</span>
+
+<span class="x">    // Get the screen name within the first item</span>
+<span class="x">    $user = $status-&gt;user-&gt;screen_name;</span>
+<span class="x">    echo $user . &#39;: &#39; . $text;</span>
+<span class="x">}</span></code></pre></div>
+
+<p>Running the &#39;php&#39; command on your file in the command line should produce results that look like this:</p>
+
+<p><img src="/assets/images/console_bat.png" alt=""></p>
+
+<blockquote>
+<p>If there are any authentication errors, they should show up in your console. Check your API keys and regenerate if necessary.</p>
+</blockquote>
+
+<p>Throw that php into a panel with some fancy Bootstrap CSS, and you&#39;ve got yourself a pretty good-looking display of tweets.</p>
+
+<h3>Conclusion</h3>
+
+<p>Temboo free accounts are limited to 1000 calls and 512 MB a month, so I wouldn&#39;t recommend it for sites that receive a lot of hits or applications that are going to be making more than 1 call every 30 minutes on average, unless you&#39;re willing to pay $10/month for 10,000 calls. Just playing around with my simple app, I ran up 91 calls in a couple of days with testing.</p>
+
+<p>I&#39;m currently using php session caching to reduce the number of calls the #batfleck code makes. In fact, the Twitter REST API documentation states that Twitter limits search queries to 180 per 15 minutes and recommends caching to avoid limitations.</p>
+
+        </section>
+        <footer class="post-footer">
+          <section class="share">
+            
+              
+                <a class="icon-twitter" href="http://twitter.com/share?text=Getting+Started+with+Twitter+in+Temboo+%5BPHP%5D&amp;url=http://tjsander.github.io/temboo"
+                  onclick="window.open(this.href, 'twitter-share', 'width=550,height=255');return false;">
+                <i class="fa fa-twitter"></i><span class="hidden">twitter</span>
+                </a>
+              
+            
+              
+            
+          </section>
+        </footer>
+        <div class="bottom-teaser cf">
+          <div class="isLeft">
+            <h5 class="index-headline featured"><span>Written by</span></h5>
+            <section class="author">
+              <div class="author-image" style="background-image: url(/assets/images/travisedit.png)">Blog Logo</div>
+              <h4>Travis J. Sanders</h4>
+              <p class="bio"></p>
+              <hr>
+              <p class="published">Published <time datetime="2014-09-16 00:00">16 Sep 2014</time></p>
+            </section>
+          </div>
+          
+          <div class="isRight">
+            <h5 class="index-headline featured"><span>Supported by</span></h5>
+            <footer class="site-footer">
+              <section class="poweredby">Proudly published with <a href="http://jekyllrb.com"> Jekyll</a></section>
+              <a class="subscribe" href="/feed.xml"> <span class="tooltip"> <i class="fa fa-rss"></i> You should subscribe to my feed.</span></a>
+              <div class="inner">
+                <section class="copyright">All content copyright <a href="/">Travis J. Sanders</a> &copy; 2014<br>All rights reserved.</section>
+              </div>
+            </footer>
+          </div>
+        </div>
+      </article>
+    </main>
+    <div class="bottom-closer">
+      <div class="background-closer-image"  style="background-image: url(/assets/images/20130410-194629.jpg)">
+      Image
+    </div>
+    <div class="inner">
+      <h1 class="blog-title">Travis J. Sanders writes</h1>
+      <h2 class="blog-description">code and thoughts and fictions
+</h2>
+      <a href="/" class="btn">Back to Overview</a>
+    </div>
+    </div>
+  </body>
+</html>

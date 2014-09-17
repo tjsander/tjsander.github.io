@@ -16,3 +16,5 @@ I pay attention to small details.
 I want to solve your problems and find new ones.
 
 [My Resume](http://careers.stackoverflow.com/tjsander)
+
+Image by [Brian Aulick](http://www.bryanaulick.com/)

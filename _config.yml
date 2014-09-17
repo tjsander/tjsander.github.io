@@ -3,9 +3,9 @@ markdown: redcarpet
 highlighter: pygments
 
 # Site settings
-title: "Travis J. Sanders personal blog"
+title: "Travis J. Sanders writes"
 description: > # this means to ignore newlines until "email:"
-   Code and thoughts and fictions
+   code and thoughts and fictions
 
 email: tjsander@gmail.com
 #blog logo

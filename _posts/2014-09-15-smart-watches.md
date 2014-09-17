@@ -6,7 +6,7 @@ permalink: dumb-watches.html
 tags: code tech featured
 ---
 
-I started wearing a watch four years ago, about the time when everyone else stopped. As a teacher time management was very important to my job, and it was not appropriate to use my cellphone during class time. I bought a Casio F-105W (THE ILLUMINATOR) for about 1200 JPY and it's been a permanent fixture on my wrist ever since.
+I started wearing a watch four years ago, about the time when everyone else stopped. As a teacher time management was very important to my job, and it was not appropriate to use my cellphone during class time. I bought a Casio F-105W (THE ILLUMINATOR) for about 1200 JPY, and it's been a permanent fixture on my wrist ever since.
 
 The Casio F105W-1A has a three-button UI. It tells time in 24H or 12H. It has an alarm and a stopwatch. It's water resistant. The killer app is a green-glowing backlight.
 
@@ -30,4 +30,4 @@ The world needs early adopters, but I'm just not one of them. Remember when the 
 
 I'd like to preemptively thank everyone who is going to purchase the Apple Watch for funding the Apple Watch 2.
 
-Image by [onigiri_chang](https://www.flickr.com/photos/onigiri_chang/)
+######Image by [onigiri_chang](https://www.flickr.com/photos/onigiri_chang/)
