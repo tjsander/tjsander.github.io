@@ -42,108 +42,149 @@
     <main class="content" role="main">
       <article class="post">
         
-        <div class="noarticleimage">
+        <div class="article-image">
+          <div class="post-image-image" style="background-image: url(https://farm8.staticflickr.com/7024/6757751165_30dc4d900d_b.jpg)">
+            Article Image
+          </div>
           <div class="post-meta">
             <h1 class="post-title">Getting Started with Twitter in Temboo [PHP]</h1>
             <div class="cf post-meta-text">
               <div class="author-image" style="background-image: url(/assets/images/travisedit.png)">Blog Logo</div>
-              <h4 class="author-name" itemprop="author" itemscope itemtype="http://schema.org/Person"></h4>
+              <h4 class="author-name" itemprop="author" itemscope itemtype="http://schema.org/Person">Travis J. Sanders</h4>
               on
-              <time datetime="2014-09-16T00:00:00-07:00">16 Sep 2014</time>
+              <time datetime="2014-09-16 00:00">16 Sep 2014</time>
               <!-- , tagged on <span class="post-tag-">, <a href="/tag/"></a></span> -->
+            </div>
+            <div style="text-align:center">
+              <a href="#topofpage" class="topofpage"><i class="fa fa-angle-down"></i></a>
             </div>
           </div>
         </div>
-        <br>
-        <br>
-        <br>
+        <script>
+          (function ($) {
+              "use strict";
+              $(document).ready(function(){
+                  var $window = $(window),
+                      $image = $('.post-image-image');
+                  $window.on('scroll', function() {
+                      var top = $window.scrollTop();
+
+                      if (top < 0 || top > 1500) { return; }
+                      $image
+                          .css('transform', 'translate3d(0px, '+top/3+'px, 0px)')
+                          .css('opacity', 1-Math.max(top/700, 0));
+                  });
+                  $window.trigger('scroll');
+
+                  var height = $('.article-image').height();
+                      $('.post-content').css('padding-top', height + 'px');
+
+                  $(function() {
+                    $('a[href*=#]:not([href=#])').click(function() {
+                      if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') && location.hostname == this.hostname) {
+                        var target = $(this.hash);
+                        target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
+                        if (target.length) {
+                          $('html,body').animate({
+                            scrollTop: target.offset().top
+                          }, 500);
+                          return false;
+                        }
+                      }
+                    });
+                  });
+
+              });
+
+          }(jQuery));
+        </script>
         
         <section class="post-content">
           <div class="post-reading">
             <span class="post-reading-time"></span> read
           </div>
           <a name="topofpage"></a>
-          <h3>Third-party APIs are not easy/fun to work with</h3>
+          <h3 id="third-party-apis-are-not-easyfun-to-work-with">Third-party APIs are not easy/fun to work with</h3>
 
-<p>From what little web-development experience I have, I can tell that learning new APIs can be a complicated, frustrating process. There doesn&#39;t seem to be a universal access procedure, and the quality of documentation varies greatly.</p>
+<p>From what little web-development experience I have, I can tell that learning new APIs can be a complicated, frustrating process. There doesn’t seem to be a universal access procedure, and the quality of documentation varies greatly.</p>
 
-<p>Temboo is a cloud-based service that handles all of the API mess for you. With over 100 APIs and 1000+ &quot;Choreos&quot; (calls to receive specific information), Temboo is a powerful tool to quickly and easily retrieve information from otherwise complicated third parties.</p>
+<p>Temboo is a cloud-based service that handles all of the API mess for you. With over 100 APIs and 1000+ “Choreos” (calls to receive specific information), Temboo is a powerful tool to quickly and easily retrieve information from otherwise complicated third parties.</p>
 
 <p>The following is a simple demonstration of how to retrieve and display tweets based on a search query.</p>
 
-<h3>Access your Twitter API keys</h3>
+<h3 id="access-your-twitter-api-keys">Access your Twitter API keys</h3>
 
-<p>Log in to <a href="https://apps.twitter.com/">apps.twitter.com</a> using your Twitter ID.
-Click Create New App and fill in the required information.
+<p>Log in to <a href="https://apps.twitter.com/">apps.twitter.com</a> using your Twitter ID.<br />
+Click Create New App and fill in the required information.<br />
 Inside of the app you created, navigate to API Keys and make sure you have access to API key, API secret, Access token and Access token secret.</p>
 
 <p>Normally, at this point, you would dig through the dev.twitter.com documentation to figure out how to make a proper AJAX call as well as deal with the OAuth procedure, what sort of information the call would return, and how to parse that information.</p>
 
 <p>Using Temboo greatly simplifies this process.</p>
 
-<h3>Setup Temboo</h3>
+<h3 id="setup-temboo">Setup Temboo</h3>
 
 <p><a href="https://temboo.com/signup">Sign up</a> for a Temboo account.
-<a href="https://temboo.com/sdk/php">Download</a> the Temboo PHP SDK and unzip it to your project folder.
-To include the library, simply add the following line to your php: <code>require &#39;php-sdk/src/temboo.php&#39;;</code>
-Now, navigate to Temboo . Library . Twitter . Search . <a href="https://temboo.com/library/Library/Twitter/Search/Tweets/">Tweets</a> to auto-generate php, or copy the code below and fill in your Temboo and Twitter API keys.
+<a href="https://temboo.com/sdk/php">Download</a> the Temboo PHP SDK and unzip it to your project folder.<br />
+To include the library, simply add the following line to your php: <code>require 'php-sdk/src/temboo.php';</code><br />
+Now, navigate to Temboo . Library . Twitter . Search . <a href="https://temboo.com/library/Library/Twitter/Search/Tweets/">Tweets</a> to auto-generate php, or copy the code below and fill in your Temboo and Twitter API keys.<br />
 You can find your Temboo access information <a href="https://temboo.com/account/applications/">here.</a></p>
 
-<div class="highlight"><pre><code class="language-php" data-lang="php"><span class="x">$session = new Temboo_Session(&quot;YOUR_USERNAME&quot;, &quot;TEMBOO_APPNAME&quot;, &quot;YOUR_ACCESS_KEY&quot;);</span>
-<span class="x">$tweets = new Twitter_Search_Tweets($session);</span>
+<div class="highlight"><pre><code class="language-php" data-lang="php"><span class="nv">$session</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Temboo_Session</span><span class="p">(</span><span class="s2">&quot;YOUR_USERNAME&quot;</span><span class="p">,</span> <span class="s2">&quot;TEMBOO_APPNAME&quot;</span><span class="p">,</span> <span class="s2">&quot;YOUR_ACCESS_KEY&quot;</span><span class="p">);</span>
+<span class="nv">$tweets</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Twitter_Search_Tweets</span><span class="p">(</span><span class="nv">$session</span><span class="p">);</span>
 
-<span class="x">// Get an input object for the Choreo</span>
-<span class="x">$tweetsInputs = $tweets-&gt;newInputs();</span>
+<span class="c1">// Get an input object for the Choreo</span>
+<span class="nv">$tweetsInputs</span> <span class="o">=</span> <span class="nv">$tweets</span><span class="o">-&gt;</span><span class="na">newInputs</span><span class="p">();</span>
 
-<span class="x">// Set inputs</span>
-<span class="x">$tweetsInputs-&gt;setCount(&quot;1-200&quot;)-&gt;setAccessToken(&quot;CHANGEME&quot;)-&gt;setQuery(&quot;SEARCH_TERM&quot;)-&gt;setAccessTokenSecret(&quot;CHANGEME&quot;)-&gt;setConsumerSecret(&quot;CHANGEME&quot;)-&gt;setConsumerKey(&quot;CHANGEME&quot;);</span>
+<span class="c1">// Set inputs</span>
+<span class="nv">$tweetsInputs</span><span class="o">-&gt;</span><span class="na">setCount</span><span class="p">(</span><span class="s2">&quot;1-200&quot;</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">setAccessToken</span><span class="p">(</span><span class="s2">&quot;CHANGEME&quot;</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">setQuery</span><span class="p">(</span><span class="s2">&quot;SEARCH_TERM&quot;</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">setAccessTokenSecret</span><span class="p">(</span><span class="s2">&quot;CHANGEME&quot;</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">setConsumerSecret</span><span class="p">(</span><span class="s2">&quot;CHANGEME&quot;</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">setConsumerKey</span><span class="p">(</span><span class="s2">&quot;CHANGEME&quot;</span><span class="p">);</span>
 
-<span class="x">// Execute Choreo and get results</span>
-<span class="x">$tweetsResults = $tweets-&gt;execute($tweetsInputs)-&gt;getResults();</span>
+<span class="c1">// Execute Choreo and get results</span>
+<span class="nv">$tweetsResults</span> <span class="o">=</span> <span class="nv">$tweets</span><span class="o">-&gt;</span><span class="na">execute</span><span class="p">(</span><span class="nv">$tweetsInputs</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">getResults</span><span class="p">();</span>
 
-<span class="x">// Parse JSON response</span>
-<span class="x">$results = json_decode($tweetsResults-&gt;getResponse());</span>
+<span class="c1">// Parse JSON response</span>
+<span class="nv">$results</span> <span class="o">=</span> <span class="nb">json_decode</span><span class="p">(</span><span class="nv">$tweetsResults</span><span class="o">-&gt;</span><span class="na">getResponse</span><span class="p">());</span>
 
-<span class="x">// Get statuses array</span>
-<span class="x">$statuses = $results-&gt;statuses;</span></code></pre></div>
+<span class="c1">// Get statuses array</span>
+<span class="nv">$statuses</span> <span class="o">=</span> <span class="nv">$results</span><span class="o">-&gt;</span><span class="na">statuses</span><span class="p">;</span></code></pre></div>
 
-<h3>Displaying the returned information</h3>
+<h3 id="displaying-the-returned-information">Displaying the returned information</h3>
 
-<p>After the above code, an array of Tweets and associated information is stored in $statuses and can be accessed like any other PHP array. From there, it&#39;s a simple matter of looping through the elements in the statuses array, collecting the information you wish to print, and formatting the output to your liking. There&#39;s even a Temboo Choreo to easily store JSON responses to a MySQL database.</p>
+<p>After the above code, an array of Tweets and associated information is stored in $statuses and can be accessed like any other PHP array. From there, it’s a simple matter of looping through the elements in the statuses array, collecting the information you wish to print, and formatting the output to your liking. There’s even a Temboo Choreo to easily store JSON responses to a MySQL database.</p>
 
 <p>The <a href="https://temboo.com/library/Library/Twitter/Search/Tweets/">Temboo library</a> where the code was generated contains a sample JSON response to this choreo, which can be copied and pasted into a <a href="http://www.jsoneditoronline.org/">JSON Editor</a> for easy navigation and searching to find the Tweet attributes you wish to use.</p>
 
-<p>The elements we&#39;re interested in are stored at <code>$statuses[$index]-&gt;text</code> and <code>$statuses[$index]-&gt;user-&gt;screen_name</code></p>
+<p>The elements we’re interested in are stored at <code>$statuses[$index]-&gt;text</code> and <code>$statuses[$index]-&gt;user-&gt;screen_name</code></p>
 
-<p>There&#39;s plenty out there on <a href="http://tutorialzine.com/2011/08/display-favorite-tweets-php-css/">formatting Twitter strings to look pretty,</a> but that&#39;s outside of the scope of this writeup.</p>
+<p>There’s plenty out there on <a href="http://tutorialzine.com/2011/08/display-favorite-tweets-php-css/">formatting Twitter strings to look pretty,</a> but that’s outside of the scope of this writeup.</p>
 
-<div class="highlight"><pre><code class="language-php" data-lang="php"><span class="x">for ($i=0; $i&lt;10; $i++) {</span>
-<span class="x">    // Get first status</span>
-<span class="x">    $status = $statuses[$i];</span>
+<div class="highlight"><pre><code class="language-php" data-lang="php"><span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;</span><span class="mi">10</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+	<span class="c1">// Get first status</span>
+	<span class="nv">$status</span> <span class="o">=</span> <span class="nv">$statuses</span><span class="p">[</span><span class="nv">$i</span><span class="p">];</span>
 
-<span class="x">    // Get the text object within the first item</span>
-<span class="x">    $text = $status-&gt;text;</span>
+	<span class="c1">// Get the text object within the first item</span>
+	<span class="nv">$text</span> <span class="o">=</span> <span class="nv">$status</span><span class="o">-&gt;</span><span class="na">text</span><span class="p">;</span>
 
-<span class="x">    // Get the screen name within the first item</span>
-<span class="x">    $user = $status-&gt;user-&gt;screen_name;</span>
-<span class="x">    echo $user . &#39;: &#39; . $text;</span>
-<span class="x">}</span></code></pre></div>
+	<span class="c1">// Get the screen name within the first item</span>
+	<span class="nv">$user</span> <span class="o">=</span> <span class="nv">$status</span><span class="o">-&gt;</span><span class="na">user</span><span class="o">-&gt;</span><span class="na">screen_name</span><span class="p">;</span>
+	<span class="k">echo</span> <span class="nv">$user</span> <span class="o">.</span> <span class="s1">&#39;: &#39;</span> <span class="o">.</span> <span class="nv">$text</span><span class="p">;</span>
+<span class="p">}</span></code></pre></div>
 
-<p>Running the &#39;php&#39; command on your file in the command line should produce results that look like this:</p>
+<p>Running the ‘php’ command on your file in the command line should produce results that look like this:</p>
 
-<p><img src="/assets/images/console_bat.png" alt=""></p>
+<p><img src="/assets/images/console_bat.png" alt="" /></p>
 
 <blockquote>
-<p>If there are any authentication errors, they should show up in your console. Check your API keys and regenerate if necessary.</p>
+  <p>If there are any authentication errors, they should show up in your console. Check your API keys and regenerate if necessary.</p>
 </blockquote>
 
-<p>Throw that php into a panel with some fancy Bootstrap CSS, and you&#39;ve got yourself a pretty good-looking display of tweets.</p>
+<p>Throw that php into a panel with some fancy Bootstrap CSS, and you’ve got yourself a pretty good-looking display of tweets.</p>
 
-<h3>Conclusion</h3>
+<h3 id="conclusion">Conclusion</h3>
 
-<p>Temboo free accounts are limited to 1000 calls and 512 MB a month, so I wouldn&#39;t recommend it for sites that receive a lot of hits or applications that are going to be making more than 1 call every 30 minutes on average, unless you&#39;re willing to pay $10/month for 10,000 calls. Just playing around with my simple app, I ran up 91 calls in a couple of days with testing.</p>
+<p>Temboo free accounts are limited to 1000 calls and 512 MB a month, so I wouldn’t recommend it for sites that receive a lot of hits or applications that are going to be making more than 1 call every 30 minutes on average, unless you’re willing to pay $10/month for 10,000 calls. Just playing around with my simple app, I ran up 91 calls in a couple of days with testing.</p>
 
-<p>I&#39;m currently using php session caching to reduce the number of calls the #batfleck code makes. In fact, the Twitter REST API documentation states that Twitter limits search queries to 180 per 15 minutes and recommends caching to avoid limitations.</p>
+<p>I’m currently using php session caching to reduce the number of calls the #batfleck code makes. In fact, the Twitter REST API documentation states that Twitter limits search queries to 180 per 15 minutes and recommends caching to avoid limitations.</p>
 
         </section>
         <footer class="post-footer">

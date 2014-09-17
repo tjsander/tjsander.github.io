@@ -63,46 +63,46 @@
             <span class="post-reading-time"></span> read
           </div>
           <a name="topofpage"></a>
-          <h4>Testing 12345...</h4>
+          <h4 id="testing-12345">Testing 12345…</h4>
 
 <p>Hello world! Here is some C code! (This is a sandbox post.)</p>
 
 <div class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">void</span> <span class="o">*</span><span class="nf">sieve_primes</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">k</span><span class="p">;</span>
-    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">m</span><span class="p">,</span> <span class="n">i</span><span class="p">;</span>
+	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">k</span><span class="p">;</span>
+	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">m</span><span class="p">,</span> <span class="n">i</span><span class="p">;</span>
 
-    <span class="k">struct</span> <span class="n">data</span> <span class="o">*</span><span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">data</span><span class="o">*</span><span class="p">)</span><span class="n">arg</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="o">*</span> <span class="n">list</span> <span class="o">=</span> <span class="n">d</span><span class="o">-&gt;</span><span class="n">list</span><span class="p">;</span>
-    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="n">d</span><span class="o">-&gt;</span><span class="n">n</span><span class="p">;</span>
-    <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+	<span class="k">struct</span> <span class="n">data</span> <span class="o">*</span><span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">data</span><span class="o">*</span><span class="p">)</span><span class="n">arg</span><span class="p">;</span>
+	<span class="kt">int</span> <span class="o">*</span> <span class="n">list</span> <span class="o">=</span> <span class="n">d</span><span class="o">-&gt;</span><span class="n">list</span><span class="p">;</span>
+	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="n">d</span><span class="o">-&gt;</span><span class="n">n</span><span class="p">;</span>
+	<span class="n">k</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
 
-    <span class="k">while</span> <span class="p">(</span><span class="n">k</span> <span class="o">&lt;</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="p">{</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
-        <span class="n">i</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+	<span class="k">while</span> <span class="p">(</span><span class="n">k</span> <span class="o">&lt;</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="p">{</span>
+		<span class="n">m</span> <span class="o">=</span> <span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
+		<span class="n">i</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
 
-        <span class="n">pthread_mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex_q</span><span class="p">);</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">m</span> <span class="o">&lt;</span> <span class="n">topstack</span><span class="p">)</span> <span class="n">m</span> <span class="o">=</span> <span class="n">topstack</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
-        <span class="k">while</span> <span class="p">((</span><span class="n">m</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="n">ISBITSET</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span> <span class="n">m</span><span class="o">++</span><span class="p">;</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">m</span> <span class="o">&gt;</span> <span class="n">topstack</span><span class="p">)</span> <span class="n">topstack</span> <span class="o">=</span> <span class="n">m</span><span class="p">;</span>
-        <span class="n">SETBIT</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">m</span><span class="p">);</span>
-        <span class="n">pthread_mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex_q</span><span class="p">);</span>
+		<span class="n">pthread_mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex_q</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">m</span> <span class="o">&lt;</span> <span class="n">topstack</span><span class="p">)</span> <span class="n">m</span> <span class="o">=</span> <span class="n">topstack</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
+		<span class="k">while</span> <span class="p">((</span><span class="n">m</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="n">ISBITSET</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span> <span class="n">m</span><span class="o">++</span><span class="p">;</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">m</span> <span class="o">&gt;</span> <span class="n">topstack</span><span class="p">)</span> <span class="n">topstack</span> <span class="o">=</span> <span class="n">m</span><span class="p">;</span>
+		<span class="n">SETBIT</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">m</span><span class="p">);</span>
+		<span class="n">pthread_mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex_q</span><span class="p">);</span>
 
-        <span class="k">while</span> <span class="p">((</span><span class="kt">long</span><span class="p">)</span><span class="n">m</span><span class="o">*</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">)</span> <span class="p">{</span>
-            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">ISBITSET</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">m</span><span class="o">*</span><span class="n">i</span><span class="p">))</span> <span class="n">SETBIT</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">m</span><span class="o">*</span><span class="n">i</span><span class="p">);</span>
-            <span class="n">i</span><span class="o">++</span><span class="p">;</span>
-        <span class="p">}</span>
+		<span class="k">while</span> <span class="p">((</span><span class="kt">long</span><span class="p">)</span><span class="n">m</span><span class="o">*</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">ISBITSET</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">m</span><span class="o">*</span><span class="n">i</span><span class="p">))</span> <span class="n">SETBIT</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">m</span><span class="o">*</span><span class="n">i</span><span class="p">);</span>
+			<span class="n">i</span><span class="o">++</span><span class="p">;</span>
+		<span class="p">}</span>
 
-        <span class="n">pthread_mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex_r</span><span class="p">);</span>
-        <span class="n">CLEARBIT</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">m</span><span class="p">);</span>
-        <span class="n">pthread_mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex_r</span><span class="p">);</span>
-        <span class="n">k</span> <span class="o">=</span> <span class="n">m</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="n">pthread_exit</span><span class="p">((</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span><span class="mi">0</span><span class="p">);</span>
+		<span class="n">pthread_mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex_r</span><span class="p">);</span>
+		<span class="n">CLEARBIT</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">m</span><span class="p">);</span>
+		<span class="n">pthread_mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex_r</span><span class="p">);</span>
+		<span class="n">k</span> <span class="o">=</span> <span class="n">m</span><span class="p">;</span>
+	<span class="p">}</span>
+	<span class="n">pthread_exit</span><span class="p">((</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span><span class="mi">0</span><span class="p">);</span>
 <span class="p">}</span></code></pre></div>
 
 <p>And here is a picture:
-<img src="/assets/images/ignore.jpg" alt="IGNORE ME" title="IGNORE ME"></p>
+<img src="/assets/images/ignore.jpg" alt="IGNORE ME" title="IGNORE ME" /></p>
 
 <p>Markdown is pretty alright.</p>
 

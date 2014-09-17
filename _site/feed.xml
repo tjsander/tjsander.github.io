@@ -6,93 +6,292 @@
 </description>
     <link>http://tjsander.github.io/</link>
     <atom:link href="http://tjsander.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Tue, 16 Sep 2014 23:09:14 -0700</pubDate>
-    <lastBuildDate>Tue, 16 Sep 2014 23:09:14 -0700</lastBuildDate>
+    <pubDate>Wed, 17 Sep 2014 01:05:33 -0700</pubDate>
+    <lastBuildDate>Wed, 17 Sep 2014 01:05:33 -0700</lastBuildDate>
     <generator>Jekyll v2.4.0</generator>
     
       <item>
+        <title>Processes, Threads and Synchronization in the Windows API</title>
+        <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
+
+&lt;p&gt;Although in 2014 Windows-based mobile devices only account for 2.5% of all mobile traffic, approximately one in three web servers runs a Windows variant. Currently, Windows-based devices represent roughly 59% of all web traffic, and (by very rough estimate) 80% of all personal computer operating systems.&lt;sup id=&quot;fnref:fn-1&quot;&gt;&lt;a href=&quot;#fn:fn-1&quot; class=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+
+&lt;p&gt;While it would be extremely convenient for programmers striving to write portable code if all systems complied to the same meritocratic standard, the hard fact of life is that the proprietary Windows API remains the de-facto ”market standard” of personal computer operating systems. In contrast to the POSIX standard, Windows differs in both implementation and execution.&lt;sup id=&quot;fnref:fn-2&quot;&gt;&lt;a href=&quot;#fn:fn-2&quot; class=&quot;footnote&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+
+&lt;p&gt;One major implementation difference is the Windows API’s liberal use of parameters. Where the POSIX implementation might have two or three parameters, the Windows equivalent has six to ten. This stems from a design decision to make most of these functions boolean. Most API calls return nonzero on success and zero on failure. The lack of a return value means that all return values must be passed by reference as parameters. Depending on preference and style, this can be considered a benefit or a burden.&lt;/p&gt;
+
+&lt;h2 id=&quot;windows-processes&quot;&gt;Windows Processes&lt;/h2&gt;
+
+&lt;p&gt;The primary difference between Windows processes and POSIX processes seems to be that Windows processes have an explicit primary thread of execution.&lt;sup id=&quot;fnref:fn-3&quot;&gt;&lt;a href=&quot;#fn:fn-3&quot; class=&quot;footnote&quot;&gt;3&lt;/a&gt;&lt;/sup&gt; This suggests that on the kernel-level Windows treats all process execution as threads. The overhead in creating new processes in Windows appears to be greater than in a POSIX environment, thus Windows relies heavily on threaded application programming rather than multi-process programming for parallelization.&lt;sup id=&quot;fnref:fn-4&quot;&gt;&lt;a href=&quot;#fn:fn-4&quot; class=&quot;footnote&quot;&gt;4&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;creating-processes&quot;&gt;Creating Processes&lt;/h3&gt;
+
+&lt;p&gt;The Windows API function CreateProcess acts as the equivalent of the exec commands. The call returns nonzero on success and 0 on failure. The error code can be checked with a call to GetLastError.&lt;sup id=&quot;fnref:fn-5&quot;&gt;&lt;a href=&quot;#fn:fn-5&quot; class=&quot;footnote&quot;&gt;5&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+
+&lt;p&gt;CreateProcess is also the closest thing the Windows API has to fork(), though nothing quite duplicates the fork functionality. Windows child processes may still inherit from their parent processes, but exactly what is inherited must be specified in the parameters passed to CreateProcess. CreateProcess requires a named executable to run as a subprocess. Thus, it would seem that any desired child subprocesses must be coded as stand-alone executable files. The simpler solution suggested on several StackOverflow posts is to simply use threads instead.&lt;sup id=&quot;fnref:fn-6&quot;&gt;&lt;a href=&quot;#fn:fn-6&quot; class=&quot;footnote&quot;&gt;6&lt;/a&gt;&lt;/sup&gt; Because of the lack of a fork command equivalent, Windows processes seem to have more overhead than POSIX processes, and are therefore less practical solutions for parallel applications.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;n&quot;&gt;STARTUPINFO&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;si&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;PROCESS_INFORMATION&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ZeroMemory&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;si&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;si&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;si&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cb&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;si&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ZeroMemory&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CreateProcess&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FALSE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;si&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pi&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;CreateProcess failed (%d).&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GetLastError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;WaitForSingleObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hProcess&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;INFINITE&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;CloseHandle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hProcess&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;CloseHandle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hThread&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In the above example, you can see the initialization of startupinfo and process information objects. These containers are passed as parameters to createprocess along with default (null) values and the command line argv[1].&lt;/p&gt;
+
+&lt;p&gt;The eqivalent call for getpid is GetCurrentProcessID, while the parent ID can be found with a call to Process32. Windows API naming conventions seem to value specificity over simplicity.&lt;/p&gt;
+
+&lt;h3 id=&quot;ending-processes&quot;&gt;Ending Processes&lt;/h3&gt;
+
+&lt;p&gt;The Windows call for a process to exit is ExitProcess, and the call to kill another process is TerminateProcess. As in POSIX, the terminated processes should be waited on by the parent process, though it is not mandatory. The equivalent calls to wait and waitpid are handled by WaitForSingleObject, which I will discuss in the synchronization section at greater length. WaitForSingleObject and WaitForMultipleObjects are the primary methods for all process and thread synchronization in Windows.&lt;/p&gt;
+
+&lt;p&gt;Note: In the Process Creation example, after the process has been waited on, handles for both the process and the process main thread must be closed.&lt;/p&gt;
+
+&lt;p&gt;It is interesting to note that most of the litereature seems to reference zombie processes as a problem unique to Unix-like operating systems. However, a simple test of starting calc.exe from a parent command line application, then killing the parent application did not kill the calculator application. This seems to be by design, as you could allow other processes to pick up and handle abandoned children or simply allow the children to continue running after the parent has ended. This approach would seem to allow for slightly more flexability when designing a program but also leaves more room for error.&lt;/p&gt;
+
+&lt;h2 id=&quot;threads&quot;&gt;Threads&lt;/h2&gt;
+
+&lt;p&gt;Thread operation in Windows works similarly to the POSIX implementation. The equivalent call to pthread create is CreateThread. The CreateThread function calls a thread function, which is passed some specified information through a struct, which is allocated on the heap. (I find it interesting that even the memory allocation functions in the Windows API are different.)&lt;sup id=&quot;fnref:fn-7&quot;&gt;&lt;a href=&quot;#fn:fn-7&quot; class=&quot;footnote&quot;&gt;7&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;creating-threads&quot;&gt;Creating Threads&lt;/h3&gt;
+
+&lt;p&gt;Windows threads other than the primary thread for each process are created with a call to CreateThread.&lt;sup id=&quot;fnref:fn-8&quot;&gt;&lt;a href=&quot;#fn:fn-8&quot; class=&quot;footnote&quot;&gt;8&lt;/a&gt;&lt;/sup&gt; In contrast to the 10 parameters necessary for CreateProcess, CreateThread only requires 6 parameters:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MAX_THREADS&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;pDataArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PMYDATA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;HeapAlloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GetProcessHeap&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;HEAP_ZERO_MEMORY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MYDATA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pDataArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ExitProcess&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;pDataArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;pDataArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;list&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;hThreadArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CreateThread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;sieve_primes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pDataArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dwThreadIdArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hThreadArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ExitProcess&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above listing is a typical example of thread creation adopted from code in the Windows API documenta- tion.&lt;sup id=&quot;fnref:fn-9&quot;&gt;&lt;a href=&quot;#fn:fn-9&quot; class=&quot;footnote&quot;&gt;9&lt;/a&gt;&lt;/sup&gt; In a loop, memory is allocated for the data array, the memory variables are set, and the thread is created and added to the thread array. In this example, the thread function sieve primes is then executed. This is one case where (in my opinion) the Windows API is more clear than the POSIX equivalent, which requires the thread array pointer be passed to pthread create as a variable, rather than returning a reference to the thread.&lt;sup id=&quot;fnref:fn-10&quot;&gt;&lt;a href=&quot;#fn:fn-10&quot; class=&quot;footnote&quot;&gt;10&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+
+&lt;p&gt;Threads may create their own local storage for thread-specific variables and data using the special memory allocationfunctionTlsAlloc.&lt;sup id=&quot;fnref:fn-11&quot;&gt;&lt;a href=&quot;#fn:fn-11&quot; class=&quot;footnote&quot;&gt;11&lt;/a&gt;&lt;/sup&gt; At an even lower level, individual Windows threads are capable of scheduling fibers, though this does not seem to offer an advantage over threading, done well.&lt;sup id=&quot;fnref:fn-12&quot;&gt;&lt;a href=&quot;#fn:fn-12&quot; class=&quot;footnote&quot;&gt;12&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;exiting-threads&quot;&gt;Exiting Threads&lt;/h3&gt;
+
+&lt;p&gt;The call to end or exit a thread in place of pthread exit((void*)0) is ThreadExit, or the thread function may simply return 0 on completion. Like processes, threads are joined by WaitForSingleObject or WaitForMultipleObjects. In the case of the above example, the command is:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;WaitForMultipleObjects(MAX_THREADS, hThreadArray, TRUE, INFINITE);&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Like processes, threads are HANDLE objects and must be closed by CloseHandle.&lt;/p&gt;
+
+&lt;h2 id=&quot;synchronization&quot;&gt;Synchronization&lt;/h2&gt;
+
+&lt;p&gt;Unlike POSIX, signals to Win32 threads (and ’event’ objects) must be set and reset manually. The benefit of this is that an event need not be looped to persist until a thread reaches it. In Win32 an open event remains open until it is manually closed. If desired, Win32 events may be specified to auto-reset instead.&lt;/p&gt;
+
+&lt;h3 id=&quot;waitforsingleobject&quot;&gt;WaitForSingleObject&lt;/h3&gt;
+
+&lt;p&gt;As stated previously, WaitForSingleObject() is the primary method for all HANDLE object synchronization in Windows. It takes the place of waitpid(), pthread join(), and sem wait(). In spite of its flexibility, the call to WaitForSingleObject is very simple, taking only two parameters: a HANDLE and a DWORD timeout value in milliseconds.&lt;sup id=&quot;fnref:fn-13&quot;&gt;&lt;a href=&quot;#fn:fn-13&quot; class=&quot;footnote&quot;&gt;13&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+
+&lt;p&gt;Since Windows processes, threads, mutexes are all HANDLE objects, WaitForSingleObject can wait on all of them. Furthermore, WaitForSingleObject has the added benefit of an optional timeout value, allowing for even more potential uses. Thus, it is entirely up to the programmer to both prevent the misuse of the function as well as naming HANDLE objects in such a way that it is clear when reading code what exactly is being waited for.&lt;/p&gt;
+
+&lt;p&gt;The return value is a DWORD representing whether the wait was abandoned, successful, timed out or failed. (WAIT ABANDONED, WAIT OBJECT 0, WAIT TIMEOUT, or WAIT FAILED)&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;WaitForMultipleObjects(MAX_THREADS, hThreadArray, TRUE, INFINITE);&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;WaitForMultipleObjects is not much more complicated, adding only the number of objects to wait for, an array of HANDLE values, and a boolean bWaitAll (wait for just one of the objects or all of them).&lt;sup id=&quot;fnref:fn-14&quot;&gt;&lt;a href=&quot;#fn:fn-14&quot; class=&quot;footnote&quot;&gt;14&lt;/a&gt;&lt;/sup&gt; The above example is a typical call from my implementation of the twin prime number finder in Win32. The function waits for MAX THREADS objects contained in the hThreadArray array. The true value referrs to wait for all of the objects, and the timout is set to infinite.&lt;/p&gt;
+
+&lt;h3 id=&quot;mutexes&quot;&gt;Mutexes&lt;/h3&gt;
+
+&lt;p&gt;In Windows, mutexes are initialized by the function CreateMutex (pthreads mutex init in POSIX). A mutex created by one process can be opened by another process with OpenMutex, but only if that mutex has already been initialized.&lt;/p&gt;
+
+&lt;p&gt;In Win32 named mutexes are used to synchronize both processes and threads. Unnamed mutexes synchronize threads and can be owned by a specific thread. Because of the system overhead involved in using mutexes, critical sections are often the better choice. The primary benefit of using a mutex in the Win32 environment seems to be the use of named mutexes to sync threads across multiple processes which may access the same resource in different areas of code.&lt;sup id=&quot;fnref:fn-15&quot;&gt;&lt;a href=&quot;#fn:fn-15&quot; class=&quot;footnote&quot;&gt;15&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+
+&lt;p&gt;Like both threads and processes, Win32 mutexes are HANDLE objects and therefore can be waited on by WaitForSingleObject. They are released by a call to ReleaseMutex and closed by CloseHandle. In addition, a timeout may be set to automatically release the mutex, which pthreads lacks.&lt;/p&gt;
+
+&lt;h3 id=&quot;semaphores&quot;&gt;Semaphores&lt;/h3&gt;
+
+&lt;p&gt;Semaphores limit the number of threads which may execute a set of commands simultaneously, based on a specified parameter. Like Win32 mutexes and POSIX named semaphores, Win32 semaphores may be opened by other processes using OpenSemaphore. Beyond that, there seems to be little difference between Win32 semaphores and POSIX semaphores. Remember that system V semaphores are used to synchronize process execution.&lt;/p&gt;
+
+&lt;h3 id=&quot;critical-sections&quot;&gt;Critical Sections&lt;/h3&gt;
+
+&lt;p&gt;In addition to the synchronization objects common to both POSIX and Windows, the Windows API contains another distinct object: the CRITICAL SECTION . The function of a Windows Critical Section is similar to the use of a binary pthread mutex to lock and unlock a critical section of code where running potentially non-atomic operations in threads simultaneously might cause incorrect output.&lt;/p&gt;
+
+&lt;p&gt;The benefit of using critical sections over a binary mutex is that they are not system calls, and therefore have lower system resource overhead.&lt;sup id=&quot;fnref:fn-16&quot;&gt;&lt;a href=&quot;#fn:fn-16&quot; class=&quot;footnote&quot;&gt;16&lt;/a&gt;&lt;/sup&gt; By the same logic, critical sections are also more resource-efficient than semaphores.&lt;/p&gt;
+
+&lt;p&gt;CRITICAL SECTION objects are initialized by InitializeCriticalSection. The functions to enter and leave a critical section (lock and unlock) are EnterCriticalSection and LeaveCriticalSection. Finally, the command to delete a critical section is DeleteCriticalSection.&lt;/p&gt;
+
+&lt;p&gt;In all functions, the only parameter is the CRITICAL SECTION object. Critical sections are both low-cost and easy to use.&lt;/p&gt;
+
+&lt;h3 id=&quot;events&quot;&gt;Events&lt;/h3&gt;
+
+&lt;p&gt;Another synchronization object unique to the Windows API is the event. Events can be initialized as signaled or not, and can be set to auto-reset or require a manual reset. This is similar to setting a condition variable in POSIX.&lt;sup id=&quot;fnref:fn-17&quot;&gt;&lt;a href=&quot;#fn:fn-17&quot; class=&quot;footnote&quot;&gt;17&lt;/a&gt;&lt;/sup&gt; Events are ideal for thread communication where threads may be dependent on certain conditions being met in other threads. In addition, events are used by several other pieces of the Win32 API to signal completion.&lt;sup id=&quot;fnref:fn-18&quot;&gt;&lt;a href=&quot;#fn:fn-18&quot; class=&quot;footnote&quot;&gt;18&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;From a purely superficial perspective, working with the Windows API is most easily done in C++ (or C#) and using Microsoft Visual Studio (I am using Visual Studio 2010). It is a bit jarring to come from using Vim and GDB to the myriad buttons and visual debugger of Visual Studio (but I do like the debugger). Navigating a DOS/CMD Command Prompt is familiar to the Unix terminal, yet many of the basic commands are completely different. (ls and dir being the first example that comes to mind.) This is not dissimilar to learning a new programming language. You can tell that both operating systems share a common ancestor, but they diverged dramatically at some point in the ancient past (approximately 1981).&lt;/p&gt;
+
+&lt;p&gt;Likewise, the APIs for both branches share a common set of tools, though they differ in implementation and interface, they are fundamentally the same tools. Unless you are writing an OS, arguing over which of the two is the ”better” implementation is somewhat moot, as you will always be limited by the platform you are developing for. If you have the time, it is almost always to the programmer’s advantage to write native code rather than emulate a foreign environment for convenience.&lt;sup id=&quot;fnref:fn-19&quot;&gt;&lt;a href=&quot;#fn:fn-19&quot; class=&quot;footnote&quot;&gt;19&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+
+&lt;p&gt;Header image @&lt;a href=&quot;https://www.flickr.com/photos/flyzipper/115834464/&quot;&gt;flyzipper&lt;/a&gt;&lt;/p&gt;
+
+&lt;div class=&quot;footnotes&quot;&gt;
+  &lt;ol&gt;
+    &lt;li id=&quot;fn:fn-1&quot;&gt;
+      &lt;p&gt;The validity of methods for collecting data on global OS usage is a topic of much debate: &lt;a href=&quot;&quot;&gt;http://en.wikipedia.org/wiki/Usage share of operating systems&lt;/a&gt; &lt;a href=&quot;#fnref:fn-1&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-2&quot;&gt;
+      &lt;p&gt;It should be noted that using an API wrapper such as &lt;a href=&quot;&quot;&gt;https://www.sourceware.org/pthreads-win32/&lt;/a&gt; allows programmers to easily port programs from POSIX to the Win32 standard with minimal code changes while still using Win32 underneath. However, using such a wrapper does not offer all of the benefits of the native Windows API. &lt;a href=&quot;#fnref:fn-2&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-3&quot;&gt;
+      &lt;p&gt;http://msdn.microsoft.com/en-us/library/windows/desktop/ms681917 &lt;a href=&quot;#fnref:fn-3&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-4&quot;&gt;
+      &lt;p&gt;http://technet.microsoft.com/en-us/library/bb496993.aspx &lt;a href=&quot;#fnref:fn-4&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-5&quot;&gt;
+      &lt;p&gt;http://msdn.microsoft.com/en-us/library/windows/desktop/ms682425 &lt;a href=&quot;#fnref:fn-5&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-6&quot;&gt;
+      &lt;p&gt;http://stackoverflow.com/questions/985281/what-is-the-closest-thing-windows-has-to-fork &lt;a href=&quot;#fnref:fn-6&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-7&quot;&gt;
+      &lt;p&gt;http://msdn.microsoft.com/en-us/library/windows/desktop/ms682516  &lt;a href=&quot;#fnref:fn-7&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-8&quot;&gt;
+      &lt;p&gt;http://msdn.microsoft.com/en-us/library/windows/desktop/ms682453 &lt;a href=&quot;#fnref:fn-8&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-9&quot;&gt;
+      &lt;p&gt;http://msdn.microsoft.com/en-us/library/windows/desktop/ms682516 &lt;a href=&quot;#fnref:fn-9&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-10&quot;&gt;
+      &lt;p&gt;The Windows implementation also requires that a dwThreadIdArray be passed as a parameter, however the usefullness of this array is not as apparent as the array of thread handles. &lt;a href=&quot;#fnref:fn-10&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-11&quot;&gt;
+      &lt;p&gt;http://msdn.microsoft.com/en-us/library/windows/desktop/ms686991  &lt;a href=&quot;#fnref:fn-11&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-12&quot;&gt;
+      &lt;p&gt;http://msdn.microsoft.com/en-us/library/windows/desktop/ms681917 &lt;a href=&quot;#fnref:fn-12&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-13&quot;&gt;
+      &lt;p&gt;http://msdn.microsoft.com/en-us/library/windows/desktop/ms687032  &lt;a href=&quot;#fnref:fn-13&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-14&quot;&gt;
+      &lt;p&gt;http://msdn.microsoft.com/en-us/library/windows/desktop/ms687025  &lt;a href=&quot;#fnref:fn-14&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-15&quot;&gt;
+      &lt;p&gt;http://msdn.microsoft.com/en-us/library/windows/desktop/ms686927 &lt;a href=&quot;#fnref:fn-15&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-16&quot;&gt;
+      &lt;p&gt;http://stackoverflow.com/questions/800383/what-is-the-difference-between-mutex-and-critical-section  &lt;a href=&quot;#fnref:fn-16&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-17&quot;&gt;
+      &lt;p&gt;http://www.slideshare.net/abufayez/pthreads-vs-win32-threads &lt;a href=&quot;#fnref:fn-17&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-18&quot;&gt;
+      &lt;p&gt;http://msdn.microsoft.com/en-us/library/windows/desktop/ms686915 &lt;a href=&quot;#fnref:fn-18&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:fn-19&quot;&gt;
+      &lt;p&gt;Attached is the source for Assignment 5’s twin prime number finder using Win32 threads: prime win32.cpp &lt;a href=&quot;#fnref:fn-19&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+</description>
+        <pubDate>Wed, 17 Sep 2014 00:00:00 -0700</pubDate>
+        <link>http://tjsander.github.io/windows-api.html</link>
+        <guid isPermaLink="true">http://tjsander.github.io/windows-api.html</guid>
+        
+        <category>code</category>
+        
+        <category>windows</category>
+        
+        
+      </item>
+    
+      <item>
         <title>Getting Started with Twitter in Temboo [PHP]</title>
-        <description>&lt;h3&gt;Third-party APIs are not easy/fun to work with&lt;/h3&gt;
+        <description>&lt;h3 id=&quot;third-party-apis-are-not-easyfun-to-work-with&quot;&gt;Third-party APIs are not easy/fun to work with&lt;/h3&gt;
 
-&lt;p&gt;From what little web-development experience I have, I can tell that learning new APIs can be a complicated, frustrating process. There doesn&amp;#39;t seem to be a universal access procedure, and the quality of documentation varies greatly.&lt;/p&gt;
+&lt;p&gt;From what little web-development experience I have, I can tell that learning new APIs can be a complicated, frustrating process. There doesn’t seem to be a universal access procedure, and the quality of documentation varies greatly.&lt;/p&gt;
 
-&lt;p&gt;Temboo is a cloud-based service that handles all of the API mess for you. With over 100 APIs and 1000+ &amp;quot;Choreos&amp;quot; (calls to receive specific information), Temboo is a powerful tool to quickly and easily retrieve information from otherwise complicated third parties.&lt;/p&gt;
+&lt;p&gt;Temboo is a cloud-based service that handles all of the API mess for you. With over 100 APIs and 1000+ “Choreos” (calls to receive specific information), Temboo is a powerful tool to quickly and easily retrieve information from otherwise complicated third parties.&lt;/p&gt;
 
 &lt;p&gt;The following is a simple demonstration of how to retrieve and display tweets based on a search query.&lt;/p&gt;
 
-&lt;h3&gt;Access your Twitter API keys&lt;/h3&gt;
+&lt;h3 id=&quot;access-your-twitter-api-keys&quot;&gt;Access your Twitter API keys&lt;/h3&gt;
 
-&lt;p&gt;Log in to &lt;a href=&quot;https://apps.twitter.com/&quot;&gt;apps.twitter.com&lt;/a&gt; using your Twitter ID.
-Click Create New App and fill in the required information.
+&lt;p&gt;Log in to &lt;a href=&quot;https://apps.twitter.com/&quot;&gt;apps.twitter.com&lt;/a&gt; using your Twitter ID.&lt;br /&gt;
+Click Create New App and fill in the required information.&lt;br /&gt;
 Inside of the app you created, navigate to API Keys and make sure you have access to API key, API secret, Access token and Access token secret.&lt;/p&gt;
 
 &lt;p&gt;Normally, at this point, you would dig through the dev.twitter.com documentation to figure out how to make a proper AJAX call as well as deal with the OAuth procedure, what sort of information the call would return, and how to parse that information.&lt;/p&gt;
 
 &lt;p&gt;Using Temboo greatly simplifies this process.&lt;/p&gt;
 
-&lt;h3&gt;Setup Temboo&lt;/h3&gt;
+&lt;h3 id=&quot;setup-temboo&quot;&gt;Setup Temboo&lt;/h3&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://temboo.com/signup&quot;&gt;Sign up&lt;/a&gt; for a Temboo account.
-&lt;a href=&quot;https://temboo.com/sdk/php&quot;&gt;Download&lt;/a&gt; the Temboo PHP SDK and unzip it to your project folder.
-To include the library, simply add the following line to your php: &lt;code&gt;require &amp;#39;php-sdk/src/temboo.php&amp;#39;;&lt;/code&gt;
-Now, navigate to Temboo . Library . Twitter . Search . &lt;a href=&quot;https://temboo.com/library/Library/Twitter/Search/Tweets/&quot;&gt;Tweets&lt;/a&gt; to auto-generate php, or copy the code below and fill in your Temboo and Twitter API keys.
+&lt;a href=&quot;https://temboo.com/sdk/php&quot;&gt;Download&lt;/a&gt; the Temboo PHP SDK and unzip it to your project folder.&lt;br /&gt;
+To include the library, simply add the following line to your php: &lt;code&gt;require &#39;php-sdk/src/temboo.php&#39;;&lt;/code&gt;&lt;br /&gt;
+Now, navigate to Temboo . Library . Twitter . Search . &lt;a href=&quot;https://temboo.com/library/Library/Twitter/Search/Tweets/&quot;&gt;Tweets&lt;/a&gt; to auto-generate php, or copy the code below and fill in your Temboo and Twitter API keys.&lt;br /&gt;
 You can find your Temboo access information &lt;a href=&quot;https://temboo.com/account/applications/&quot;&gt;here.&lt;/a&gt;&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-php&quot; data-lang=&quot;php&quot;&gt;&lt;span class=&quot;x&quot;&gt;$session = new Temboo_Session(&amp;quot;YOUR_USERNAME&amp;quot;, &amp;quot;TEMBOO_APPNAME&amp;quot;, &amp;quot;YOUR_ACCESS_KEY&amp;quot;);&lt;/span&gt;
-&lt;span class=&quot;x&quot;&gt;$tweets = new Twitter_Search_Tweets($session);&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-php&quot; data-lang=&quot;php&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$session&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Temboo_Session&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;YOUR_USERNAME&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;TEMBOO_APPNAME&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;YOUR_ACCESS_KEY&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$tweets&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Twitter_Search_Tweets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$session&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
 
-&lt;span class=&quot;x&quot;&gt;// Get an input object for the Choreo&lt;/span&gt;
-&lt;span class=&quot;x&quot;&gt;$tweetsInputs = $tweets-&amp;gt;newInputs();&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Get an input object for the Choreo&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$tweetsInputs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$tweets&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newInputs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
 
-&lt;span class=&quot;x&quot;&gt;// Set inputs&lt;/span&gt;
-&lt;span class=&quot;x&quot;&gt;$tweetsInputs-&amp;gt;setCount(&amp;quot;1-200&amp;quot;)-&amp;gt;setAccessToken(&amp;quot;CHANGEME&amp;quot;)-&amp;gt;setQuery(&amp;quot;SEARCH_TERM&amp;quot;)-&amp;gt;setAccessTokenSecret(&amp;quot;CHANGEME&amp;quot;)-&amp;gt;setConsumerSecret(&amp;quot;CHANGEME&amp;quot;)-&amp;gt;setConsumerKey(&amp;quot;CHANGEME&amp;quot;);&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Set inputs&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$tweetsInputs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setCount&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;1-200&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setAccessToken&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;CHANGEME&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setQuery&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;SEARCH_TERM&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setAccessTokenSecret&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;CHANGEME&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setConsumerSecret&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;CHANGEME&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setConsumerKey&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;CHANGEME&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
 
-&lt;span class=&quot;x&quot;&gt;// Execute Choreo and get results&lt;/span&gt;
-&lt;span class=&quot;x&quot;&gt;$tweetsResults = $tweets-&amp;gt;execute($tweetsInputs)-&amp;gt;getResults();&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Execute Choreo and get results&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$tweetsResults&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$tweets&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;execute&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$tweetsInputs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getResults&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
 
-&lt;span class=&quot;x&quot;&gt;// Parse JSON response&lt;/span&gt;
-&lt;span class=&quot;x&quot;&gt;$results = json_decode($tweetsResults-&amp;gt;getResponse());&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Parse JSON response&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$results&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;json_decode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$tweetsResults&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getResponse&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
 
-&lt;span class=&quot;x&quot;&gt;// Get statuses array&lt;/span&gt;
-&lt;span class=&quot;x&quot;&gt;$statuses = $results-&amp;gt;statuses;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span class=&quot;c1&quot;&gt;// Get statuses array&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$statuses&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$results&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;statuses&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;h3&gt;Displaying the returned information&lt;/h3&gt;
+&lt;h3 id=&quot;displaying-the-returned-information&quot;&gt;Displaying the returned information&lt;/h3&gt;
 
-&lt;p&gt;After the above code, an array of Tweets and associated information is stored in $statuses and can be accessed like any other PHP array. From there, it&amp;#39;s a simple matter of looping through the elements in the statuses array, collecting the information you wish to print, and formatting the output to your liking. There&amp;#39;s even a Temboo Choreo to easily store JSON responses to a MySQL database.&lt;/p&gt;
+&lt;p&gt;After the above code, an array of Tweets and associated information is stored in $statuses and can be accessed like any other PHP array. From there, it’s a simple matter of looping through the elements in the statuses array, collecting the information you wish to print, and formatting the output to your liking. There’s even a Temboo Choreo to easily store JSON responses to a MySQL database.&lt;/p&gt;
 
 &lt;p&gt;The &lt;a href=&quot;https://temboo.com/library/Library/Twitter/Search/Tweets/&quot;&gt;Temboo library&lt;/a&gt; where the code was generated contains a sample JSON response to this choreo, which can be copied and pasted into a &lt;a href=&quot;http://www.jsoneditoronline.org/&quot;&gt;JSON Editor&lt;/a&gt; for easy navigation and searching to find the Tweet attributes you wish to use.&lt;/p&gt;
 
-&lt;p&gt;The elements we&amp;#39;re interested in are stored at &lt;code&gt;$statuses[$index]-&amp;gt;text&lt;/code&gt; and &lt;code&gt;$statuses[$index]-&amp;gt;user-&amp;gt;screen_name&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;The elements we’re interested in are stored at &lt;code&gt;$statuses[$index]-&amp;gt;text&lt;/code&gt; and &lt;code&gt;$statuses[$index]-&amp;gt;user-&amp;gt;screen_name&lt;/code&gt;&lt;/p&gt;
 
-&lt;p&gt;There&amp;#39;s plenty out there on &lt;a href=&quot;http://tutorialzine.com/2011/08/display-favorite-tweets-php-css/&quot;&gt;formatting Twitter strings to look pretty,&lt;/a&gt; but that&amp;#39;s outside of the scope of this writeup.&lt;/p&gt;
+&lt;p&gt;There’s plenty out there on &lt;a href=&quot;http://tutorialzine.com/2011/08/display-favorite-tweets-php-css/&quot;&gt;formatting Twitter strings to look pretty,&lt;/a&gt; but that’s outside of the scope of this writeup.&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-php&quot; data-lang=&quot;php&quot;&gt;&lt;span class=&quot;x&quot;&gt;for ($i=0; $i&amp;lt;10; $i++) {&lt;/span&gt;
-&lt;span class=&quot;x&quot;&gt;    // Get first status&lt;/span&gt;
-&lt;span class=&quot;x&quot;&gt;    $status = $statuses[$i];&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-php&quot; data-lang=&quot;php&quot;&gt;&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;c1&quot;&gt;// Get first status&lt;/span&gt;
+	&lt;span class=&quot;nv&quot;&gt;$status&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$statuses&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
 
-&lt;span class=&quot;x&quot;&gt;    // Get the text object within the first item&lt;/span&gt;
-&lt;span class=&quot;x&quot;&gt;    $text = $status-&amp;gt;text;&lt;/span&gt;
+	&lt;span class=&quot;c1&quot;&gt;// Get the text object within the first item&lt;/span&gt;
+	&lt;span class=&quot;nv&quot;&gt;$text&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$status&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
 
-&lt;span class=&quot;x&quot;&gt;    // Get the screen name within the first item&lt;/span&gt;
-&lt;span class=&quot;x&quot;&gt;    $user = $status-&amp;gt;user-&amp;gt;screen_name;&lt;/span&gt;
-&lt;span class=&quot;x&quot;&gt;    echo $user . &amp;#39;: &amp;#39; . $text;&lt;/span&gt;
-&lt;span class=&quot;x&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+	&lt;span class=&quot;c1&quot;&gt;// Get the screen name within the first item&lt;/span&gt;
+	&lt;span class=&quot;nv&quot;&gt;$user&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$status&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;screen_name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$user&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;: &amp;#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;Running the &amp;#39;php&amp;#39; command on your file in the command line should produce results that look like this:&lt;/p&gt;
+&lt;p&gt;Running the ‘php’ command on your file in the command line should produce results that look like this:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/images/console_bat.png&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/images/console_bat.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;blockquote&gt;
-&lt;p&gt;If there are any authentication errors, they should show up in your console. Check your API keys and regenerate if necessary.&lt;/p&gt;
+  &lt;p&gt;If there are any authentication errors, they should show up in your console. Check your API keys and regenerate if necessary.&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;p&gt;Throw that php into a panel with some fancy Bootstrap CSS, and you&amp;#39;ve got yourself a pretty good-looking display of tweets.&lt;/p&gt;
+&lt;p&gt;Throw that php into a panel with some fancy Bootstrap CSS, and you’ve got yourself a pretty good-looking display of tweets.&lt;/p&gt;
 
-&lt;h3&gt;Conclusion&lt;/h3&gt;
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
 
-&lt;p&gt;Temboo free accounts are limited to 1000 calls and 512 MB a month, so I wouldn&amp;#39;t recommend it for sites that receive a lot of hits or applications that are going to be making more than 1 call every 30 minutes on average, unless you&amp;#39;re willing to pay $10/month for 10,000 calls. Just playing around with my simple app, I ran up 91 calls in a couple of days with testing.&lt;/p&gt;
+&lt;p&gt;Temboo free accounts are limited to 1000 calls and 512 MB a month, so I wouldn’t recommend it for sites that receive a lot of hits or applications that are going to be making more than 1 call every 30 minutes on average, unless you’re willing to pay $10/month for 10,000 calls. Just playing around with my simple app, I ran up 91 calls in a couple of days with testing.&lt;/p&gt;
 
-&lt;p&gt;I&amp;#39;m currently using php session caching to reduce the number of calls the #batfleck code makes. In fact, the Twitter REST API documentation states that Twitter limits search queries to 180 per 15 minutes and recommends caching to avoid limitations.&lt;/p&gt;
+&lt;p&gt;I’m currently using php session caching to reduce the number of calls the #batfleck code makes. In fact, the Twitter REST API documentation states that Twitter limits search queries to 180 per 15 minutes and recommends caching to avoid limitations.&lt;/p&gt;
 </description>
         <pubDate>Tue, 16 Sep 2014 00:00:00 -0700</pubDate>
         <link>http://tjsander.github.io/temboo-twitter.html</link>
@@ -107,33 +306,33 @@ You can find your Temboo access information &lt;a href=&quot;https://temboo.com/
     
       <item>
         <title>Dumb Watches</title>
-        <description>&lt;p&gt;I started wearing a watch four years ago, about the time when everyone else stopped. As a teacher time management was very important to my job, and it was not appropriate to use my cellphone during class time. I bought a Casio F-105W (THE ILLUMINATOR) for about 1200 JPY, and it&amp;#39;s been a permanent fixture on my wrist ever since.&lt;/p&gt;
+        <description>&lt;p&gt;I started wearing a watch four years ago, about the time when everyone else stopped. As a teacher time management was very important to my job, and it was not appropriate to use my cellphone during class time. I bought a Casio F-105W (THE ILLUMINATOR) for about 1200 JPY, and it’s been a permanent fixture on my wrist ever since.&lt;/p&gt;
 
-&lt;p&gt;The Casio F105W-1A has a three-button UI. It tells time in 24H or 12H. It has an alarm and a stopwatch. It&amp;#39;s water resistant. The killer app is a green-glowing backlight.&lt;/p&gt;
+&lt;p&gt;The Casio F105W-1A has a three-button UI. It tells time in 24H or 12H. It has an alarm and a stopwatch. It’s water resistant. The killer app is a green-glowing backlight.&lt;/p&gt;
 
-&lt;p&gt;In my opinion, it&amp;#39;s the best value watch ever made. (Currently $11.50 on Amazon.)&lt;/p&gt;
+&lt;p&gt;In my opinion, it’s the best value watch ever made. (Currently $11.50 on Amazon.)&lt;/p&gt;
 
-&lt;p&gt;The recently-announced Apple Watch is extremely cool -- and I&amp;#39;m almost certainly going to buy an Apple Watch 2 or an Apple Watch 3 if the 2 is also expensive -- but I was hoping for something that had half of these features for half of the price.&lt;/p&gt;
+&lt;p&gt;The recently-announced Apple Watch is extremely cool – and I’m almost certainly going to buy an Apple Watch 2 or an Apple Watch 3 if the 2 is also expensive – but I was hoping for something that had half of these features for half of the price.&lt;/p&gt;
 
-&lt;p&gt;I don&amp;#39;t need to be able to see my friends&amp;#39; baby picture posts to Facebook on my wrist. I don&amp;#39;t want anyone I&amp;#39;m dating to ever, EVER send me their heartbeat. That&amp;#39;s creepy as hell.&lt;/p&gt;
+&lt;p&gt;I don’t need to be able to see my friends’ baby picture posts to Facebook on my wrist. I don’t want anyone I’m dating to ever, EVER send me their heartbeat. That’s creepy as hell.&lt;/p&gt;
 
 &lt;p&gt;Basically, I want a Casio F105W that shows my push notifications and tracks my fitness.&lt;/p&gt;
 
 &lt;blockquote&gt;
-&lt;p&gt;[STEAL THIS IDEA] An activity monitor that you can attach to the bottom of a watch.&lt;/p&gt;
+  &lt;p&gt;[STEAL THIS IDEA] An activity monitor that you can attach to the bottom of a watch.&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;p&gt;From a design perspective, the Apple Watch dial is a stroke of pure genius. The device casing is jewelery that I would actually wear. The curved, flexable display is impossible.&lt;/p&gt;
 
-&lt;p&gt;It looks a lot like a small, polished 2G iPhone. It will probably sell similar numbers. Possibly more. Maybe people are just used to throwing down $400+ for some new thing they didn&amp;#39;t know they needed but now must absolutely have.&lt;/p&gt;
+&lt;p&gt;It looks a lot like a small, polished 2G iPhone. It will probably sell similar numbers. Possibly more. Maybe people are just used to throwing down $400+ for some new thing they didn’t know they needed but now must absolutely have.&lt;/p&gt;
 
-&lt;p&gt;I was almost certain Apple would include a wireless charging pad or some sort of ingenious method for motion charging. Nightly charging seems like a cruel joke. I don&amp;#39;t want to have to charge my watch more than twice a week. Or ever. The battery in the Casio I bought 4 years ago is still going strong.&lt;/p&gt;
+&lt;p&gt;I was almost certain Apple would include a wireless charging pad or some sort of ingenious method for motion charging. Nightly charging seems like a cruel joke. I don’t want to have to charge my watch more than twice a week. Or ever. The battery in the Casio I bought 4 years ago is still going strong.&lt;/p&gt;
 
-&lt;p&gt;The world needs early adopters, but I&amp;#39;m just not one of them. Remember when the iPad was a new thing and you saw that douchebag with the iPad in a coffee shop? Are you not that douchebag now?&lt;/p&gt;
+&lt;p&gt;The world needs early adopters, but I’m just not one of them. Remember when the iPad was a new thing and you saw that douchebag with the iPad in a coffee shop? Are you not that douchebag now?&lt;/p&gt;
 
-&lt;p&gt;I&amp;#39;d like to preemptively thank everyone who is going to purchase the Apple Watch for funding the Apple Watch 2.&lt;/p&gt;
+&lt;p&gt;I’d like to preemptively thank everyone who is going to purchase the Apple Watch for funding the Apple Watch 2.&lt;/p&gt;
 
-&lt;h6&gt;Image by &lt;a href=&quot;https://www.flickr.com/photos/onigiri_chang/&quot;&gt;onigiri_chang&lt;/a&gt;&lt;/h6&gt;
+&lt;p&gt;######Image by &lt;a href=&quot;https://www.flickr.com/photos/onigiri_chang/&quot;&gt;onigiri_chang&lt;/a&gt;&lt;/p&gt;
 </description>
         <pubDate>Mon, 15 Sep 2014 00:00:00 -0700</pubDate>
         <link>http://tjsander.github.io/dumb-watches.html</link>
@@ -150,46 +349,46 @@ You can find your Temboo access information &lt;a href=&quot;https://temboo.com/
     
       <item>
         <title>My First Jekyll Post!</title>
-        <description>&lt;h4&gt;Testing 12345...&lt;/h4&gt;
+        <description>&lt;h4 id=&quot;testing-12345&quot;&gt;Testing 12345…&lt;/h4&gt;
 
 &lt;p&gt;Hello world! Here is some C code! (This is a sandbox post.)&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;sieve_primes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
 
-    &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;list&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;d&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;d&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;list&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;d&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;d&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;k&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
 
-    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;k&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqrt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;k&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqrt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
 
-        &lt;span class=&quot;n&quot;&gt;pthread_mutex_lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mutex_q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;topstack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;topstack&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ISBITSET&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;topstack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;topstack&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;SETBIT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;pthread_mutex_unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mutex_q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;pthread_mutex_lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mutex_q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+		&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;topstack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;topstack&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ISBITSET&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;topstack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;topstack&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;SETBIT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;pthread_mutex_unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mutex_q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
 
-        &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;long&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ISBITSET&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SETBIT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+		&lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;long&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+			&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ISBITSET&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SETBIT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+			&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 
-        &lt;span class=&quot;n&quot;&gt;pthread_mutex_lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mutex_r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;CLEARBIT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;pthread_mutex_unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mutex_r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;pthread_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;pthread_mutex_lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mutex_r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;CLEARBIT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;pthread_mutex_unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mutex_r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;k&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;pthread_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;And here is a picture:
-&lt;img src=&quot;/assets/images/ignore.jpg&quot; alt=&quot;IGNORE ME&quot; title=&quot;IGNORE ME&quot;&gt;&lt;/p&gt;
+&lt;img src=&quot;/assets/images/ignore.jpg&quot; alt=&quot;IGNORE ME&quot; title=&quot;IGNORE ME&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Markdown is pretty alright.&lt;/p&gt;
 </description>

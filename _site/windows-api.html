@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <!-- (1) Optimize for mobile versions: http://goo.gl/EOpFl -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- (1) force latest IE rendering engine: bit.ly/1c8EiC9 -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Processes, Threads and Synchronization in the Windows API</title>
+  <meta name="description" content="code and thoughts and fictions
+" />
+
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="MobileOptimized" content="320" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="canonical" href="http://tjsander.github.io/windows-api.html">
+
+  <link rel="shortcut icon" href="/assets/images/favicon.ico">
+<!--  <link rel="stylesheet" href=""> -->
+  <link rel="stylesheet" href="http://brick.a.ssl.fastly.net/Linux+Libertine:400,400i,700,700i/Open+Sans:400,400i,700,700i">
+  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css" >
+
+  <link rel="stylesheet" type="text/css" media="screen" href="/css/main.css" />
+  <link rel="stylesheet" type="text/css" media="print" href="/css/print.css" />
+  <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+
+  <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+  <script type="text/javascript" src="/assets/js/index.js"></script>
+  <script type="text/javascript" src="/assets/js/readingTime.min.js"></script>
+</head>
+
+  <body itemscope itemtype="http://schema.org/Article">
+    <!-- header start -->
+
+<a href="http://tjsander.github.io" class="logo-readium"><span class="logo" style="background-image: url(/assets/images/3button.png)"></span></a>
+
+<!-- header end -->
+
+    <main class="content" role="main">
+      <article class="post">
+        
+        <div class="article-image">
+          <div class="post-image-image" style="background-image: url(https://farm1.staticflickr.com/35/115834464_07e911074c_b.jpg)">
+            Article Image
+          </div>
+          <div class="post-meta">
+            <h1 class="post-title">Processes, Threads and Synchronization in the Windows API</h1>
+            <div class="cf post-meta-text">
+              <div class="author-image" style="background-image: url(/assets/images/travisedit.png)">Blog Logo</div>
+              <h4 class="author-name" itemprop="author" itemscope itemtype="http://schema.org/Person">Travis J. Sanders</h4>
+              on
+              <time datetime="2014-09-17 00:00">17 Sep 2014</time>
+              <!-- , tagged on <span class="post-tag-">, <a href="/tag/"></a></span> -->
+            </div>
+            <div style="text-align:center">
+              <a href="#topofpage" class="topofpage"><i class="fa fa-angle-down"></i></a>
+            </div>
+          </div>
+        </div>
+        <script>
+          (function ($) {
+              "use strict";
+              $(document).ready(function(){
+                  var $window = $(window),
+                      $image = $('.post-image-image');
+                  $window.on('scroll', function() {
+                      var top = $window.scrollTop();
+
+                      if (top < 0 || top > 1500) { return; }
+                      $image
+                          .css('transform', 'translate3d(0px, '+top/3+'px, 0px)')
+                          .css('opacity', 1-Math.max(top/700, 0));
+                  });
+                  $window.trigger('scroll');
+
+                  var height = $('.article-image').height();
+                      $('.post-content').css('padding-top', height + 'px');
+
+                  $(function() {
+                    $('a[href*=#]:not([href=#])').click(function() {
+                      if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') && location.hostname == this.hostname) {
+                        var target = $(this.hash);
+                        target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
+                        if (target.length) {
+                          $('html,body').animate({
+                            scrollTop: target.offset().top
+                          }, 500);
+                          return false;
+                        }
+                      }
+                    });
+                  });
+
+              });
+
+          }(jQuery));
+        </script>
+        
+        <section class="post-content">
+          <div class="post-reading">
+            <span class="post-reading-time"></span> read
+          </div>
+          <a name="topofpage"></a>
+          <h2 id="introduction">Introduction</h2>
+
+<p>Although in 2014 Windows-based mobile devices only account for 2.5% of all mobile traffic, approximately one in three web servers runs a Windows variant. Currently, Windows-based devices represent roughly 59% of all web traffic, and (by very rough estimate) 80% of all personal computer operating systems.<sup id="fnref:fn-1"><a href="#fn:fn-1" class="footnote">1</a></sup></p>
+
+<p>While it would be extremely convenient for programmers striving to write portable code if all systems complied to the same meritocratic standard, the hard fact of life is that the proprietary Windows API remains the de-facto ”market standard” of personal computer operating systems. In contrast to the POSIX standard, Windows differs in both implementation and execution.<sup id="fnref:fn-2"><a href="#fn:fn-2" class="footnote">2</a></sup></p>
+
+<p>One major implementation difference is the Windows API’s liberal use of parameters. Where the POSIX implementation might have two or three parameters, the Windows equivalent has six to ten. This stems from a design decision to make most of these functions boolean. Most API calls return nonzero on success and zero on failure. The lack of a return value means that all return values must be passed by reference as parameters. Depending on preference and style, this can be considered a benefit or a burden.</p>
+
+<h2 id="windows-processes">Windows Processes</h2>
+
+<p>The primary difference between Windows processes and POSIX processes seems to be that Windows processes have an explicit primary thread of execution.<sup id="fnref:fn-3"><a href="#fn:fn-3" class="footnote">3</a></sup> This suggests that on the kernel-level Windows treats all process execution as threads. The overhead in creating new processes in Windows appears to be greater than in a POSIX environment, thus Windows relies heavily on threaded application programming rather than multi-process programming for parallelization.<sup id="fnref:fn-4"><a href="#fn:fn-4" class="footnote">4</a></sup></p>
+
+<h3 id="creating-processes">Creating Processes</h3>
+
+<p>The Windows API function CreateProcess acts as the equivalent of the exec commands. The call returns nonzero on success and 0 on failure. The error code can be checked with a call to GetLastError.<sup id="fnref:fn-5"><a href="#fn:fn-5" class="footnote">5</a></sup></p>
+
+<p>CreateProcess is also the closest thing the Windows API has to fork(), though nothing quite duplicates the fork functionality. Windows child processes may still inherit from their parent processes, but exactly what is inherited must be specified in the parameters passed to CreateProcess. CreateProcess requires a named executable to run as a subprocess. Thus, it would seem that any desired child subprocesses must be coded as stand-alone executable files. The simpler solution suggested on several StackOverflow posts is to simply use threads instead.<sup id="fnref:fn-6"><a href="#fn:fn-6" class="footnote">6</a></sup> Because of the lack of a fork command equivalent, Windows processes seem to have more overhead than POSIX processes, and are therefore less practical solutions for parallel applications.</p>
+
+<div class="highlight"><pre><code class="language-c" data-lang="c"><span class="n">STARTUPINFO</span> <span class="n">si</span><span class="p">;</span>
+<span class="n">PROCESS_INFORMATION</span> <span class="n">pi</span><span class="p">;</span>
+<span class="n">ZeroMemory</span><span class="p">(</span> <span class="o">&amp;</span><span class="n">si</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">si</span><span class="p">)</span> <span class="p">);</span>
+<span class="n">si</span><span class="p">.</span><span class="n">cb</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">si</span><span class="p">);</span>
+<span class="n">ZeroMemory</span><span class="p">(</span> <span class="o">&amp;</span><span class="n">pi</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">pi</span><span class="p">)</span> <span class="p">);</span>
+<span class="k">if</span><span class="p">(</span> <span class="o">!</span><span class="n">CreateProcess</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">NULL</span><span class="p">,</span>
+        <span class="nb">NULL</span><span class="p">,</span> <span class="n">FALSE</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">si</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">pi</span> <span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span> <span class="s">&quot;CreateProcess failed (%d).</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">GetLastError</span><span class="p">()</span> <span class="p">);</span>
+<span class="k">return</span> <span class="mi">1</span><span class="p">;</span> <span class="p">}</span>
+<span class="n">WaitForSingleObject</span><span class="p">(</span> <span class="n">pi</span><span class="p">.</span><span class="n">hProcess</span><span class="p">,</span> <span class="n">INFINITE</span> <span class="p">);</span>
+<span class="n">CloseHandle</span><span class="p">(</span> <span class="n">pi</span><span class="p">.</span><span class="n">hProcess</span> <span class="p">);</span>
+<span class="n">CloseHandle</span><span class="p">(</span> <span class="n">pi</span><span class="p">.</span><span class="n">hThread</span> <span class="p">);</span></code></pre></div>
+
+<p>In the above example, you can see the initialization of startupinfo and process information objects. These containers are passed as parameters to createprocess along with default (null) values and the command line argv[1].</p>
+
+<p>The eqivalent call for getpid is GetCurrentProcessID, while the parent ID can be found with a call to Process32. Windows API naming conventions seem to value specificity over simplicity.</p>
+
+<h3 id="ending-processes">Ending Processes</h3>
+
+<p>The Windows call for a process to exit is ExitProcess, and the call to kill another process is TerminateProcess. As in POSIX, the terminated processes should be waited on by the parent process, though it is not mandatory. The equivalent calls to wait and waitpid are handled by WaitForSingleObject, which I will discuss in the synchronization section at greater length. WaitForSingleObject and WaitForMultipleObjects are the primary methods for all process and thread synchronization in Windows.</p>
+
+<p>Note: In the Process Creation example, after the process has been waited on, handles for both the process and the process main thread must be closed.</p>
+
+<p>It is interesting to note that most of the litereature seems to reference zombie processes as a problem unique to Unix-like operating systems. However, a simple test of starting calc.exe from a parent command line application, then killing the parent application did not kill the calculator application. This seems to be by design, as you could allow other processes to pick up and handle abandoned children or simply allow the children to continue running after the parent has ended. This approach would seem to allow for slightly more flexability when designing a program but also leaves more room for error.</p>
+
+<h2 id="threads">Threads</h2>
+
+<p>Thread operation in Windows works similarly to the POSIX implementation. The equivalent call to pthread create is CreateThread. The CreateThread function calls a thread function, which is passed some specified information through a struct, which is allocated on the heap. (I find it interesting that even the memory allocation functions in the Windows API are different.)<sup id="fnref:fn-7"><a href="#fn:fn-7" class="footnote">7</a></sup></p>
+
+<h3 id="creating-threads">Creating Threads</h3>
+
+<p>Windows threads other than the primary thread for each process are created with a call to CreateThread.<sup id="fnref:fn-8"><a href="#fn:fn-8" class="footnote">8</a></sup> In contrast to the 10 parameters necessary for CreateProcess, CreateThread only requires 6 parameters:</p>
+
+<div class="highlight"><pre><code class="language-c" data-lang="c"><span class="k">for</span><span class="p">(</span> <span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">MAX_THREADS</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="n">pDataArray</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">PMYDATA</span><span class="p">)</span> <span class="n">HeapAlloc</span><span class="p">(</span><span class="n">GetProcessHeap</span><span class="p">(),</span>
+     <span class="n">HEAP_ZERO_MEMORY</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">MYDATA</span><span class="p">));</span>
+    <span class="k">if</span><span class="p">(</span> <span class="n">pDataArray</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="nb">NULL</span> <span class="p">)</span> <span class="n">ExitProcess</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+    <span class="n">pDataArray</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">n</span> <span class="o">=</span> <span class="n">m</span><span class="p">;</span>
+    <span class="n">pDataArray</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">list</span> <span class="o">=</span> <span class="n">list</span><span class="p">;</span>
+    <span class="n">hThreadArray</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">CreateThread</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+     <span class="n">sieve_primes</span><span class="p">,</span> <span class="n">pDataArray</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">dwThreadIdArray</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">hThreadArray</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="n">ExitProcess</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
+<span class="p">}</span></code></pre></div>
+
+<p>The above listing is a typical example of thread creation adopted from code in the Windows API documenta- tion.<sup id="fnref:fn-9"><a href="#fn:fn-9" class="footnote">9</a></sup> In a loop, memory is allocated for the data array, the memory variables are set, and the thread is created and added to the thread array. In this example, the thread function sieve primes is then executed. This is one case where (in my opinion) the Windows API is more clear than the POSIX equivalent, which requires the thread array pointer be passed to pthread create as a variable, rather than returning a reference to the thread.<sup id="fnref:fn-10"><a href="#fn:fn-10" class="footnote">10</a></sup></p>
+
+<p>Threads may create their own local storage for thread-specific variables and data using the special memory allocationfunctionTlsAlloc.<sup id="fnref:fn-11"><a href="#fn:fn-11" class="footnote">11</a></sup> At an even lower level, individual Windows threads are capable of scheduling fibers, though this does not seem to offer an advantage over threading, done well.<sup id="fnref:fn-12"><a href="#fn:fn-12" class="footnote">12</a></sup></p>
+
+<h3 id="exiting-threads">Exiting Threads</h3>
+
+<p>The call to end or exit a thread in place of pthread exit((void*)0) is ThreadExit, or the thread function may simply return 0 on completion. Like processes, threads are joined by WaitForSingleObject or WaitForMultipleObjects. In the case of the above example, the command is:</p>
+
+<p><code>WaitForMultipleObjects(MAX_THREADS, hThreadArray, TRUE, INFINITE);</code></p>
+
+<p>Like processes, threads are HANDLE objects and must be closed by CloseHandle.</p>
+
+<h2 id="synchronization">Synchronization</h2>
+
+<p>Unlike POSIX, signals to Win32 threads (and ’event’ objects) must be set and reset manually. The benefit of this is that an event need not be looped to persist until a thread reaches it. In Win32 an open event remains open until it is manually closed. If desired, Win32 events may be specified to auto-reset instead.</p>
+
+<h3 id="waitforsingleobject">WaitForSingleObject</h3>
+
+<p>As stated previously, WaitForSingleObject() is the primary method for all HANDLE object synchronization in Windows. It takes the place of waitpid(), pthread join(), and sem wait(). In spite of its flexibility, the call to WaitForSingleObject is very simple, taking only two parameters: a HANDLE and a DWORD timeout value in milliseconds.<sup id="fnref:fn-13"><a href="#fn:fn-13" class="footnote">13</a></sup></p>
+
+<p>Since Windows processes, threads, mutexes are all HANDLE objects, WaitForSingleObject can wait on all of them. Furthermore, WaitForSingleObject has the added benefit of an optional timeout value, allowing for even more potential uses. Thus, it is entirely up to the programmer to both prevent the misuse of the function as well as naming HANDLE objects in such a way that it is clear when reading code what exactly is being waited for.</p>
+
+<p>The return value is a DWORD representing whether the wait was abandoned, successful, timed out or failed. (WAIT ABANDONED, WAIT OBJECT 0, WAIT TIMEOUT, or WAIT FAILED)</p>
+
+<p><code>WaitForMultipleObjects(MAX_THREADS, hThreadArray, TRUE, INFINITE);</code></p>
+
+<p>WaitForMultipleObjects is not much more complicated, adding only the number of objects to wait for, an array of HANDLE values, and a boolean bWaitAll (wait for just one of the objects or all of them).<sup id="fnref:fn-14"><a href="#fn:fn-14" class="footnote">14</a></sup> The above example is a typical call from my implementation of the twin prime number finder in Win32. The function waits for MAX THREADS objects contained in the hThreadArray array. The true value referrs to wait for all of the objects, and the timout is set to infinite.</p>
+
+<h3 id="mutexes">Mutexes</h3>
+
+<p>In Windows, mutexes are initialized by the function CreateMutex (pthreads mutex init in POSIX). A mutex created by one process can be opened by another process with OpenMutex, but only if that mutex has already been initialized.</p>
+
+<p>In Win32 named mutexes are used to synchronize both processes and threads. Unnamed mutexes synchronize threads and can be owned by a specific thread. Because of the system overhead involved in using mutexes, critical sections are often the better choice. The primary benefit of using a mutex in the Win32 environment seems to be the use of named mutexes to sync threads across multiple processes which may access the same resource in different areas of code.<sup id="fnref:fn-15"><a href="#fn:fn-15" class="footnote">15</a></sup></p>
+
+<p>Like both threads and processes, Win32 mutexes are HANDLE objects and therefore can be waited on by WaitForSingleObject. They are released by a call to ReleaseMutex and closed by CloseHandle. In addition, a timeout may be set to automatically release the mutex, which pthreads lacks.</p>
+
+<h3 id="semaphores">Semaphores</h3>
+
+<p>Semaphores limit the number of threads which may execute a set of commands simultaneously, based on a specified parameter. Like Win32 mutexes and POSIX named semaphores, Win32 semaphores may be opened by other processes using OpenSemaphore. Beyond that, there seems to be little difference between Win32 semaphores and POSIX semaphores. Remember that system V semaphores are used to synchronize process execution.</p>
+
+<h3 id="critical-sections">Critical Sections</h3>
+
+<p>In addition to the synchronization objects common to both POSIX and Windows, the Windows API contains another distinct object: the CRITICAL SECTION . The function of a Windows Critical Section is similar to the use of a binary pthread mutex to lock and unlock a critical section of code where running potentially non-atomic operations in threads simultaneously might cause incorrect output.</p>
+
+<p>The benefit of using critical sections over a binary mutex is that they are not system calls, and therefore have lower system resource overhead.<sup id="fnref:fn-16"><a href="#fn:fn-16" class="footnote">16</a></sup> By the same logic, critical sections are also more resource-efficient than semaphores.</p>
+
+<p>CRITICAL SECTION objects are initialized by InitializeCriticalSection. The functions to enter and leave a critical section (lock and unlock) are EnterCriticalSection and LeaveCriticalSection. Finally, the command to delete a critical section is DeleteCriticalSection.</p>
+
+<p>In all functions, the only parameter is the CRITICAL SECTION object. Critical sections are both low-cost and easy to use.</p>
+
+<h3 id="events">Events</h3>
+
+<p>Another synchronization object unique to the Windows API is the event. Events can be initialized as signaled or not, and can be set to auto-reset or require a manual reset. This is similar to setting a condition variable in POSIX.<sup id="fnref:fn-17"><a href="#fn:fn-17" class="footnote">17</a></sup> Events are ideal for thread communication where threads may be dependent on certain conditions being met in other threads. In addition, events are used by several other pieces of the Win32 API to signal completion.<sup id="fnref:fn-18"><a href="#fn:fn-18" class="footnote">18</a></sup></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>From a purely superficial perspective, working with the Windows API is most easily done in C++ (or C#) and using Microsoft Visual Studio (I am using Visual Studio 2010). It is a bit jarring to come from using Vim and GDB to the myriad buttons and visual debugger of Visual Studio (but I do like the debugger). Navigating a DOS/CMD Command Prompt is familiar to the Unix terminal, yet many of the basic commands are completely different. (ls and dir being the first example that comes to mind.) This is not dissimilar to learning a new programming language. You can tell that both operating systems share a common ancestor, but they diverged dramatically at some point in the ancient past (approximately 1981).</p>
+
+<p>Likewise, the APIs for both branches share a common set of tools, though they differ in implementation and interface, they are fundamentally the same tools. Unless you are writing an OS, arguing over which of the two is the ”better” implementation is somewhat moot, as you will always be limited by the platform you are developing for. If you have the time, it is almost always to the programmer’s advantage to write native code rather than emulate a foreign environment for convenience.<sup id="fnref:fn-19"><a href="#fn:fn-19" class="footnote">19</a></sup></p>
+
+<p>Header image @<a href="https://www.flickr.com/photos/flyzipper/115834464/">flyzipper</a></p>
+
+<div class="footnotes">
+  <ol>
+    <li id="fn:fn-1">
+      <p>The validity of methods for collecting data on global OS usage is a topic of much debate: <a href="">http://en.wikipedia.org/wiki/Usage share of operating systems</a> <a href="#fnref:fn-1" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-2">
+      <p>It should be noted that using an API wrapper such as <a href="">https://www.sourceware.org/pthreads-win32/</a> allows programmers to easily port programs from POSIX to the Win32 standard with minimal code changes while still using Win32 underneath. However, using such a wrapper does not offer all of the benefits of the native Windows API. <a href="#fnref:fn-2" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-3">
+      <p>http://msdn.microsoft.com/en-us/library/windows/desktop/ms681917 <a href="#fnref:fn-3" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-4">
+      <p>http://technet.microsoft.com/en-us/library/bb496993.aspx <a href="#fnref:fn-4" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-5">
+      <p>http://msdn.microsoft.com/en-us/library/windows/desktop/ms682425 <a href="#fnref:fn-5" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-6">
+      <p>http://stackoverflow.com/questions/985281/what-is-the-closest-thing-windows-has-to-fork <a href="#fnref:fn-6" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-7">
+      <p>http://msdn.microsoft.com/en-us/library/windows/desktop/ms682516  <a href="#fnref:fn-7" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-8">
+      <p>http://msdn.microsoft.com/en-us/library/windows/desktop/ms682453 <a href="#fnref:fn-8" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-9">
+      <p>http://msdn.microsoft.com/en-us/library/windows/desktop/ms682516 <a href="#fnref:fn-9" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-10">
+      <p>The Windows implementation also requires that a dwThreadIdArray be passed as a parameter, however the usefullness of this array is not as apparent as the array of thread handles. <a href="#fnref:fn-10" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-11">
+      <p>http://msdn.microsoft.com/en-us/library/windows/desktop/ms686991  <a href="#fnref:fn-11" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-12">
+      <p>http://msdn.microsoft.com/en-us/library/windows/desktop/ms681917 <a href="#fnref:fn-12" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-13">
+      <p>http://msdn.microsoft.com/en-us/library/windows/desktop/ms687032  <a href="#fnref:fn-13" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-14">
+      <p>http://msdn.microsoft.com/en-us/library/windows/desktop/ms687025  <a href="#fnref:fn-14" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-15">
+      <p>http://msdn.microsoft.com/en-us/library/windows/desktop/ms686927 <a href="#fnref:fn-15" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-16">
+      <p>http://stackoverflow.com/questions/800383/what-is-the-difference-between-mutex-and-critical-section  <a href="#fnref:fn-16" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-17">
+      <p>http://www.slideshare.net/abufayez/pthreads-vs-win32-threads <a href="#fnref:fn-17" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-18">
+      <p>http://msdn.microsoft.com/en-us/library/windows/desktop/ms686915 <a href="#fnref:fn-18" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn-19">
+      <p>Attached is the source for Assignment 5’s twin prime number finder using Win32 threads: prime win32.cpp <a href="#fnref:fn-19" class="reversefootnote">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+
+        </section>
+        <footer class="post-footer">
+          <section class="share">
+            
+              
+                <a class="icon-twitter" href="http://twitter.com/share?text=Processes%2C+Threads+and+Synchronization+in+the+Windows+API&amp;url=http://tjsander.github.io/windows-api"
+                  onclick="window.open(this.href, 'twitter-share', 'width=550,height=255');return false;">
+                <i class="fa fa-twitter"></i><span class="hidden">twitter</span>
+                </a>
+              
+            
+              
+            
+          </section>
+        </footer>
+        <div class="bottom-teaser cf">
+          <div class="isLeft">
+            <h5 class="index-headline featured"><span>Written by</span></h5>
+            <section class="author">
+              <div class="author-image" style="background-image: url(/assets/images/travisedit.png)">Blog Logo</div>
+              <h4>Travis J. Sanders</h4>
+              <p class="bio"></p>
+              <hr>
+              <p class="published">Published <time datetime="2014-09-17 00:00">17 Sep 2014</time></p>
+            </section>
+          </div>
+          
+          <div class="isRight">
+            <h5 class="index-headline featured"><span>Supported by</span></h5>
+            <footer class="site-footer">
+              <section class="poweredby">Proudly published with <a href="http://jekyllrb.com"> Jekyll</a></section>
+              <a class="subscribe" href="/feed.xml"> <span class="tooltip"> <i class="fa fa-rss"></i> You should subscribe to my feed.</span></a>
+              <div class="inner">
+                <section class="copyright">All content copyright <a href="/">Travis J. Sanders</a> &copy; 2014<br>All rights reserved.</section>
+              </div>
+            </footer>
+          </div>
+        </div>
+      </article>
+    </main>
+    <div class="bottom-closer">
+      <div class="background-closer-image"  style="background-image: url(/assets/images/20130410-194629.jpg)">
+      Image
+    </div>
+    <div class="inner">
+      <h1 class="blog-title">Travis J. Sanders writes</h1>
+      <h2 class="blog-description">code and thoughts and fictions
+</h2>
+      <a href="/" class="btn">Back to Overview</a>
+    </div>
+    </div>
+  </body>
+</html>
