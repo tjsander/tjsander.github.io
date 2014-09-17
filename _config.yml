@@ -1,0 +1,53 @@
+# Build settings
+markdown: redcarpet
+highlighter: pygments
+
+# Site settings
+title: "Travis J. Sanders personal blog"
+description: > # this means to ignore newlines until "email:"
+   Code and thoughts and fictions
+
+email: tjsander@gmail.com
+#blog logo
+logo: "/assets/images/3button.png"
+# blog cover
+cover: "/assets/images/20130410-194629.jpg"
+
+name: 'Travis J. Sanders'
+author: 'Travis J. Sanders'
+author_image: "/assets/images/travisedit.png"
+
+paginate:	5
+
+url: "http://tjsander.github.io" # the base hostname & protocol for your site
+# baseurl: ""
+
+# social icons and sharing options
+social:
+  - icon:	twitter
+    url:	https://twitter.com/tjsander
+    desc: Follow me on twitter
+    share_url: http://twitter.com/share
+    share_title: ?text=
+    share_link: "&amp;url="
+
+#  - icon:	facebook
+#    url:	https://facebook.com/???
+#    desc: Connect with me facebook
+#    share_url: //www.facebook.com/sharer.php
+#    share_title: ?t=
+#    share_link: "&amp;u="
+
+  - icon:	github
+    url:	https://github.com/tjsander
+    desc:	Fork me on github
+    share_url:
+    share_title:
+    share_link:
+
+#  - icon:	google-plus
+#    url:	https://google.com/???
+#    desc:	Add me on google+
+#    share_url:
+#    share_title:
+#    share_link:

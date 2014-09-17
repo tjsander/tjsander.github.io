@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <!-- (1) Optimize for mobile versions: http://goo.gl/EOpFl -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- (1) force latest IE rendering engine: bit.ly/1c8EiC9 -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>My First Jekyll Post!</title>
+  <meta name="description" content="Code and thoughts and fictions
+" />
+
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="MobileOptimized" content="320" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="canonical" href="http://tjsander.github.io/2014/09/14/my-first-post.html">
+
+  <link rel="shortcut icon" href="/assets/images/favicon.ico">
+<!--  <link rel="stylesheet" href=""> -->
+  <link rel="stylesheet" href="http://brick.a.ssl.fastly.net/Linux+Libertine:400,400i,700,700i/Open+Sans:400,400i,700,700i">
+  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css" >
+
+  <link rel="stylesheet" type="text/css" media="screen" href="/css/main.css" />
+  <link rel="stylesheet" type="text/css" media="print" href="/css/print.css" />
+  <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+
+  <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+  <script type="text/javascript" src="/assets/js/index.js"></script>
+  <script type="text/javascript" src="/assets/js/readingTime.min.js"></script>
+</head>
+
+  <body itemscope itemtype="http://schema.org/Article">
+    <!-- header start -->
+
+<a href="http://tjsander.github.io" class="logo-readium"><span class="logo" style="background-image: url(/assets/images/3button.png)"></span></a>
+
+<!-- header end -->
+
+    <main class="content" role="main">
+      <article class="post">
+        
+        <div class="noarticleimage">
+          <div class="post-meta">
+            <h1 class="post-title">My First Jekyll Post!</h1>
+            <div class="cf post-meta-text">
+              <div class="author-image" style="background-image: url(/assets/images/travisedit.png)">Blog Logo</div>
+              <h4 class="author-name" itemprop="author" itemscope itemtype="http://schema.org/Person"></h4>
+              on
+              <time datetime="2014-09-14T00:00:00-07:00">14 Sep 2014</time>
+              <!-- , tagged on <span class="post-tag-">, <a href="/tag/"></a></span> -->
+            </div>
+          </div>
+        </div>
+        <br>
+        <br>
+        <br>
+        
+        <section class="post-content">
+          <div class="post-reading">
+            <span class="post-reading-time"></span> read
+          </div>
+          <a name="topofpage"></a>
+          <h4>Testing 12345...</h4>
+
+<p>Hello world! Here is some C code!</p>
+
+<div class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">void</span> <span class="o">*</span><span class="nf">sieve_primes</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">k</span><span class="p">;</span>
+    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">m</span><span class="p">,</span> <span class="n">i</span><span class="p">;</span>
+
+    <span class="k">struct</span> <span class="n">data</span> <span class="o">*</span><span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">data</span><span class="o">*</span><span class="p">)</span><span class="n">arg</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="o">*</span> <span class="n">list</span> <span class="o">=</span> <span class="n">d</span><span class="o">-&gt;</span><span class="n">list</span><span class="p">;</span>
+    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="n">d</span><span class="o">-&gt;</span><span class="n">n</span><span class="p">;</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+
+    <span class="k">while</span> <span class="p">(</span><span class="n">k</span> <span class="o">&lt;</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+
+        <span class="n">pthread_mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex_q</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">m</span> <span class="o">&lt;</span> <span class="n">topstack</span><span class="p">)</span> <span class="n">m</span> <span class="o">=</span> <span class="n">topstack</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
+        <span class="k">while</span> <span class="p">((</span><span class="n">m</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="n">ISBITSET</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span> <span class="n">m</span><span class="o">++</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">m</span> <span class="o">&gt;</span> <span class="n">topstack</span><span class="p">)</span> <span class="n">topstack</span> <span class="o">=</span> <span class="n">m</span><span class="p">;</span>
+        <span class="n">SETBIT</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">m</span><span class="p">);</span>
+        <span class="n">pthread_mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex_q</span><span class="p">);</span>
+
+        <span class="k">while</span> <span class="p">((</span><span class="kt">long</span><span class="p">)</span><span class="n">m</span><span class="o">*</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">ISBITSET</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">m</span><span class="o">*</span><span class="n">i</span><span class="p">))</span> <span class="n">SETBIT</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">m</span><span class="o">*</span><span class="n">i</span><span class="p">);</span>
+            <span class="n">i</span><span class="o">++</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="n">pthread_mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex_r</span><span class="p">);</span>
+        <span class="n">CLEARBIT</span><span class="p">(</span><span class="n">list</span><span class="p">,</span> <span class="n">m</span><span class="p">);</span>
+        <span class="n">pthread_mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex_r</span><span class="p">);</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">m</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">pthread_exit</span><span class="p">((</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span></code></pre></div>
+
+<p>And here is a picture:
+<img src="/assets/images/ignore.jpg" alt="IGNORE ME" title="IGNORE ME"></p>
+
+<p>Markdown is pretty alright.</p>
+
+        </section>
+        <footer class="post-footer">
+          <section class="share">
+            
+              
+                <a class="icon-twitter" href="http://twitter.com/share?text=My+First+Jekyll+Post%21&amp;url=http://tjsander.github.io/2014/09/14/my-first-post"
+                  onclick="window.open(this.href, 'twitter-share', 'width=550,height=255');return false;">
+                <i class="fa fa-twitter"></i><span class="hidden">twitter</span>
+                </a>
+              
+            
+              
+            
+          </section>
+        </footer>
+        <div class="bottom-teaser cf">
+          <div class="isLeft">
+            <h5 class="index-headline featured"><span>Written by</span></h5>
+            <section class="author">
+              <div class="author-image" style="background-image: url(/assets/images/travisedit.png)">Blog Logo</div>
+              <h4>Travis J. Sanders</h4>
+              <p class="bio"></p>
+              <hr>
+              <p class="published">Published <time datetime="2014-09-14 00:00">14 Sep 2014</time></p>
+            </section>
+          </div>
+          
+          <div class="isRight">
+            <h5 class="index-headline featured"><span>Supported by</span></h5>
+            <footer class="site-footer">
+              <section class="poweredby">Proudly published with <a href="http://jekyllrb.com"> Jekyll</a></section>
+              <a class="subscribe" href="/feed.xml"> <span class="tooltip"> <i class="fa fa-rss"></i> You should subscribe to my feed.</span></a>
+              <div class="inner">
+                <section class="copyright">All content copyright <a href="/">Travis J. Sanders</a> &copy; 2014<br>All rights reserved.</section>
+              </div>
+            </footer>
+          </div>
+        </div>
+      </article>
+    </main>
+    <div class="bottom-closer">
+      <div class="background-closer-image"  style="background-image: url(/assets/images/20130410-194629.jpg)">
+      Image
+    </div>
+    <div class="inner">
+      <h1 class="blog-title">Travis J. Sanders personal blog</h1>
+      <h2 class="blog-description">Code and thoughts and fictions
+</h2>
+      <a href="/" class="btn">Back to Overview</a>
+    </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <!-- (1) Optimize for mobile versions: http://goo.gl/EOpFl -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- (1) force latest IE rendering engine: bit.ly/1c8EiC9 -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Travis J. Sanders</title>
+  <meta name="description" content="Code and thoughts and fictions
+" />
+
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="MobileOptimized" content="320" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="canonical" href="http://tjsander.github.io/about/">
+
+  <link rel="shortcut icon" href="/assets/images/favicon.ico">
+<!--  <link rel="stylesheet" href=""> -->
+  <link rel="stylesheet" href="http://brick.a.ssl.fastly.net/Linux+Libertine:400,400i,700,700i/Open+Sans:400,400i,700,700i">
+  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css" >
+
+  <link rel="stylesheet" type="text/css" media="screen" href="/css/main.css" />
+  <link rel="stylesheet" type="text/css" media="print" href="/css/print.css" />
+  <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+
+  <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+  <script type="text/javascript" src="/assets/js/index.js"></script>
+  <script type="text/javascript" src="/assets/js/readingTime.min.js"></script>
+</head>
+
+  <body itemscope itemtype="http://schema.org/Article">
+    <!-- header start -->
+
+<a href="http://tjsander.github.io" class="logo-readium"><span class="logo" style="background-image: url(/assets/images/3button.png)"></span></a>
+
+<!-- header end -->
+
+    <main class="content" role="main">
+      <article class="post">
+        
+        <div class="article-image">
+          <div class="post-image-image" style="background-image: url(/assets/images/20130410-194629.jpg)">
+            Article Image
+          </div>
+          <div class="post-meta">
+            <h1 class="post-title">Travis J. Sanders</h1>
+            <div class="cf post-meta-text">
+              <div class="author-image" style="background-image: url(/assets/images/travisedit.png)">Blog Logo</div>
+              <h4 class="author-name" itemprop="author" itemscope itemtype="http://schema.org/Person">Travis J. Sanders</h4>
+            </div>
+            <div style="text-align:center">
+              <a href="#topofpage" class="topofpage"><i class="fa fa-angle-down"></i></a>
+            </div>
+          </div>
+        </div>
+        <script>
+          (function ($) {
+              "use strict";
+
+              $(document).ready(function(){
+
+                  var $window = $(window),
+                      $image = $('.post-image-image');
+                  $window.on('scroll', function() {
+                      var top = $window.scrollTop();
+
+                      if (top < 0 || top > 1500) { return; }
+                      $image
+                          .css('transform', 'translate3d(0px, '+top/3+'px, 0px)')
+                          .css('opacity', 1-Math.max(top/700, 0));
+                  });
+                  $window.trigger('scroll');
+
+                  var height = $('.article-image').height();
+                      $('.post-content').css('padding-top', height + 'px');
+
+                  $(function() {
+                    $('a[href*=#]:not([href=#])').click(function() {
+                      if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') && location.hostname == this.hostname) {
+                        var target = $(this.hash);
+                        target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
+                        if (target.length) {
+                          $('html,body').animate({
+                            scrollTop: target.offset().top
+                          }, 500);
+                          return false;
+                        }
+                      }
+                    });
+                  });
+
+              });
+
+          }(jQuery));
+        </script>
+        
+        <section class="post-content">
+          <a name="topofpage"></a>
+          <p>I am currently a full-time student pursuing a second bachelors degree in computer science. I am looking for an opportunity to put my new skills to work and get a taste for many different areas of software development. I am especially interested in embedded systems.</p>
+
+<p>I have always been fascinated with the way things work, and I take everything I own apart. </p>
+
+<p>I enjoy constructing complex systems using simple, elegant language and seeing them work.</p>
+
+<p>I pay attention to small details.</p>
+
+<p>I want to solve your problems and find new ones.</p>
+
+<p><a href="http://careers.stackoverflow.com/tjsander">My Resume</a></p>
+
+        </section>
+        </div>
+      </article>
+    </main>
+    <div class="bottom-closer">
+      <div class="background-closer-image"  style="background-image: url(/assets/images/20130410-194629.jpg)">
+      Image
+    </div>
+    <div class="inner">
+      <h1 class="blog-title">Travis J. Sanders personal blog</h1>
+      <h2 class="blog-description">Code and thoughts and fictions
+</h2>
+      <a href="/" class="btn">Back to Overview</a>
+    </div>
+    </div>
+  </body>
+</html>
