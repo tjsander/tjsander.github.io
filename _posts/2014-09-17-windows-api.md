@@ -1,12 +1,10 @@
 ---
 layout: post
-title: "Processes, Threads and Synchronization in the Windows API"
+title: "Multiprocessing in the Win32 API"
 image: https://farm1.staticflickr.com/35/115834464_07e911074c_b.jpg
 permalink: windows-api.html
 tags: code windows
 ---
-
-## Introduction
 
 Although in 2014 Windows-based mobile devices only account for 2.5% of all mobile traffic, approximately one in three web servers runs a Windows variant. Currently, Windows-based devices represent roughly 59% of all web traffic, and (by very rough estimate) 80% of all personal computer operating systems.[^fn-1]
 While it would be extremely convenient for programmers striving to write portable code if all systems complied to the same meritocratic standard, the hard fact of life is that the proprietary Windows API remains the de-facto ”market standard” of personal computer operating systems. In contrast to the POSIX standard, Windows differs in both implementation and execution.[^fn-2]
