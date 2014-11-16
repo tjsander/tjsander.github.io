@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Multiprocessing in the Win32 API"
-image: https://farm1.staticflickr.com/35/115834464_07e911074c_b.jpg
+image: https://farm6.staticflickr.com/5085/5265589046_d23cf6248e_b_d.jpg
 permalink: windows-api.html
 tags: code windows
 ---
@@ -95,7 +95,7 @@ Another synchronization object unique to the Windows API is the event. Events ca
 
 Likewise, the APIs for both branches share a common set of tools, though they differ in implementation and interface, they are fundamentally the same tools. Unless you are writing an OS, arguing over which of the two is the ”better” implementation is somewhat moot, as you will always be limited by the platform you are developing for. If you have the time, it is almost always to the programmer’s advantage to write native code rather than emulate a foreign environment for convenience.[^fn-19]
 
-Header image @[flyzipper](https://www.flickr.com/photos/flyzipper/115834464/)[^fn-1]: The validity of methods for collecting data on global OS usage is a topic of much debate: [http://en.wikipedia.org/wiki/Usage share of operating systems]()
+*Header image by [Iman Khalili](https://www.flickr.com/photos/30006834@N05/5265589046/)*[^fn-1]: The validity of methods for collecting data on global OS usage is a topic of much debate: [http://en.wikipedia.org/wiki/Usage share of operating systems]()
 [^fn-2]: It should be noted that using an API wrapper such as [https://www.sourceware.org/pthreads-win32/]() allows programmers to easily port programs from POSIX to the Win32 standard with minimal code changes while still using Win32 underneath. However, using such a wrapper does not offer all of the benefits of the native Windows API.[^fn-3]: http://msdn.microsoft.com/en-us/library/windows/desktop/ms681917[^fn-4]: http://technet.microsoft.com/en-us/library/bb496993.aspx[^fn-5]: http://msdn.microsoft.com/en-us/library/windows/desktop/ms682425[^fn-6]: http://stackoverflow.com/questions/985281/what-is-the-closest-thing-windows-has-to-fork[^fn-7]: http://msdn.microsoft.com/en-us/library/windows/desktop/ms682516 
 [^fn-8]: http://msdn.microsoft.com/en-us/library/windows/desktop/ms682453
 [^fn-9]: http://msdn.microsoft.com/en-us/library/windows/desktop/ms682516

@@ -3,7 +3,10 @@ layout: post
 title: My First Jekyll Post!
 ---
 
+(╯°□°)╯︵ ┻━┻
+
 #### Testing 12345...
+I give this plugin two :+1:
 
 Hello world! Here is some C code! (This is a sandbox post.)
 
@@ -44,6 +47,6 @@ void *sieve_primes(void *arg)
 {% endhighlight %}
 
 And here is a picture:
-![IGNORE ME](/assets/images/ignore.jpg "IGNORE ME")
+![](/assets/images/ignore.jpg "IGNORE ME")
 
 Markdown is pretty alright.

@@ -7,7 +7,7 @@
   <!-- (1) force latest IE rendering engine: bit.ly/1c8EiC9 -->
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-  <title>Processes, Threads and Synchronization in the Windows API</title>
+  <title>Multiprocessing in the Win32 API</title>
   <meta name="description" content="code and thoughts and fictions
 " />
 
@@ -43,11 +43,11 @@
       <article class="post">
         
         <div class="article-image">
-          <div class="post-image-image" style="background-image: url(https://farm1.staticflickr.com/35/115834464_07e911074c_b.jpg)">
+          <div class="post-image-image" style="background-image: url(https://farm6.staticflickr.com/5085/5265589046_d23cf6248e_b_d.jpg)">
             Article Image
           </div>
           <div class="post-meta">
-            <h1 class="post-title">Processes, Threads and Synchronization in the Windows API</h1>
+            <h1 class="post-title">Multiprocessing in the Win32 API</h1>
             <div class="cf post-meta-text">
               <div class="author-image" style="background-image: url(/assets/images/travisedit.png)">Blog Logo</div>
               <h4 class="author-name" itemprop="author" itemscope itemtype="http://schema.org/Person">Travis J. Sanders</h4>
@@ -104,9 +104,7 @@
             <span class="post-reading-time"></span> read
           </div>
           <a name="topofpage"></a>
-          <h2 id="introduction">Introduction</h2>
-
-<p>Although in 2014 Windows-based mobile devices only account for 2.5% of all mobile traffic, approximately one in three web servers runs a Windows variant. Currently, Windows-based devices represent roughly 59% of all web traffic, and (by very rough estimate) 80% of all personal computer operating systems.<sup id="fnref:fn-1"><a href="#fn:fn-1" class="footnote">1</a></sup></p>
+          <p>Although in 2014 Windows-based mobile devices only account for 2.5% of all mobile traffic, approximately one in three web servers runs a Windows variant. Currently, Windows-based devices represent roughly 59% of all web traffic, and (by very rough estimate) 80% of all personal computer operating systems.<sup id="fnref:fn-1"><a href="#fn:fn-1" class="footnote">1</a></sup></p>
 
 <p>While it would be extremely convenient for programmers striving to write portable code if all systems complied to the same meritocratic standard, the hard fact of life is that the proprietary Windows API remains the de-facto ”market standard” of personal computer operating systems. In contrast to the POSIX standard, Windows differs in both implementation and execution.<sup id="fnref:fn-2"><a href="#fn:fn-2" class="footnote">2</a></sup></p>
 
@@ -226,7 +224,7 @@
 
 <p>Likewise, the APIs for both branches share a common set of tools, though they differ in implementation and interface, they are fundamentally the same tools. Unless you are writing an OS, arguing over which of the two is the ”better” implementation is somewhat moot, as you will always be limited by the platform you are developing for. If you have the time, it is almost always to the programmer’s advantage to write native code rather than emulate a foreign environment for convenience.<sup id="fnref:fn-19"><a href="#fn:fn-19" class="footnote">19</a></sup></p>
 
-<p>Header image @<a href="https://www.flickr.com/photos/flyzipper/115834464/">flyzipper</a></p>
+<p><em>Header image by <a href="https://www.flickr.com/photos/30006834@N05/5265589046/">Iman Khalili</a></em></p>
 
 <div class="footnotes">
   <ol>
@@ -295,7 +293,7 @@
           <section class="share">
             
               
-                <a class="icon-twitter" href="http://twitter.com/share?text=Processes%2C+Threads+and+Synchronization+in+the+Windows+API&amp;url=http://tjsander.github.io/windows-api"
+                <a class="icon-twitter" href="http://twitter.com/share?text=Multiprocessing+in+the+Win32+API&amp;url=http://tjsander.github.io/windows-api"
                   onclick="window.open(this.href, 'twitter-share', 'width=550,height=255');return false;">
                 <i class="fa fa-twitter"></i><span class="hidden">twitter</span>
                 </a>

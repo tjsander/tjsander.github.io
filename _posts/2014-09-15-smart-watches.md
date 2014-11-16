@@ -3,7 +3,7 @@ layout: post
 title: "Dumb Watches"
 image: https://farm9.staticflickr.com/8330/8437201777_4750a6999b_k_d.jpg
 permalink: dumb-watches.html
-tags: code tech featured
+tags: code tech
 ---
 
 I started wearing a watch four years ago, about the time when everyone else stopped. As a teacher time management was very important to my job, and it was not appropriate to use my cellphone during class time. I bought a Casio F-105W (THE ILLUMINATOR) for about 1200 JPY, and it's been a permanent fixture on my wrist ever since.

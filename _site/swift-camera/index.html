@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <!-- (1) Optimize for mobile versions: http://goo.gl/EOpFl -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- (1) force latest IE rendering engine: bit.ly/1c8EiC9 -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Using the iOS Camera with Swift</title>
+  <meta name="description" content="code and thoughts and fictions
+" />
+
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="MobileOptimized" content="320" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="canonical" href="http://tjsander.github.io/swift-camera">
+
+  <link rel="shortcut icon" href="/assets/images/favicon.ico">
+<!--  <link rel="stylesheet" href=""> -->
+  <link rel="stylesheet" href="http://brick.a.ssl.fastly.net/Linux+Libertine:400,400i,700,700i/Open+Sans:400,400i,700,700i">
+  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css" >
+
+  <link rel="stylesheet" type="text/css" media="screen" href="/css/main.css" />
+  <link rel="stylesheet" type="text/css" media="print" href="/css/print.css" />
+  <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+
+  <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+  <script type="text/javascript" src="/assets/js/index.js"></script>
+  <script type="text/javascript" src="/assets/js/readingTime.min.js"></script>
+</head>
+
+  <body itemscope itemtype="http://schema.org/Article">
+    <!-- header start -->
+
+<a href="http://tjsander.github.io" class="logo-readium"><span class="logo" style="background-image: url(/assets/images/3button.png)"></span></a>
+
+<!-- header end -->
+
+    <main class="content" role="main">
+      <article class="post">
+        
+        <div class="article-image">
+          <div class="post-image-image" style="background-image: url(https://farm7.staticflickr.com/6160/6205964186_1140d1048f_b_d.jpg)">
+            Article Image
+          </div>
+          <div class="post-meta">
+            <h1 class="post-title">Using the iOS Camera with Swift</h1>
+            <div class="cf post-meta-text">
+              <div class="author-image" style="background-image: url(/assets/images/travisedit.png)">Blog Logo</div>
+              <h4 class="author-name" itemprop="author" itemscope itemtype="http://schema.org/Person">Travis J. Sanders</h4>
+              on
+              <time datetime="2014-11-16 00:00">16 Nov 2014</time>
+              <!-- , tagged on <span class="post-tag-">, <a href="/tag/"></a></span> -->
+            </div>
+            <div style="text-align:center">
+              <a href="#topofpage" class="topofpage"><i class="fa fa-angle-down"></i></a>
+            </div>
+          </div>
+        </div>
+        <script>
+          (function ($) {
+              "use strict";
+              $(document).ready(function(){
+                  var $window = $(window),
+                      $image = $('.post-image-image');
+                  $window.on('scroll', function() {
+                      var top = $window.scrollTop();
+
+                      if (top < 0 || top > 1500) { return; }
+                      $image
+                          .css('transform', 'translate3d(0px, '+top/3+'px, 0px)')
+                          .css('opacity', 1-Math.max(top/700, 0));
+                  });
+                  $window.trigger('scroll');
+
+                  var height = $('.article-image').height();
+                      $('.post-content').css('padding-top', height + 'px');
+
+                  $(function() {
+                    $('a[href*=#]:not([href=#])').click(function() {
+                      if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') && location.hostname == this.hostname) {
+                        var target = $(this.hash);
+                        target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
+                        if (target.length) {
+                          $('html,body').animate({
+                            scrollTop: target.offset().top
+                          }, 500);
+                          return false;
+                        }
+                      }
+                    });
+                  });
+
+              });
+
+          }(jQuery));
+        </script>
+        
+        <section class="post-content">
+          <div class="post-reading">
+            <span class="post-reading-time"></span> read
+          </div>
+          <a name="topofpage"></a>
+          <p>One of the major barriers to overcome in programming for iOS and other Apple platforms is learning to work with Objective-C, the main language in all Apple operating systems since the release of OSX in 2001. With the recent introduction of the Swift language, this is no longer necessarily the case. In the announcement Apple described Swift as “Objective-C without the C”, which may be a relief to many previously turned off by Objective-C’s unique syntax (or C pointers).</p>
+
+<p>While the introduction of the Swift programming language makes native iOS programming more accessible to those of us with little Objective-C experience, guides on Swift programming for iOS are still relatively sparse. Much of the documentation and an overwhelming majority of community resources are still written in Objective-C. It’s relatively easy to find guides written on how to perform simple tasks using Objective-C, like <a href="http://www.appcoda.com/ios-programming-camera-iphone-app/">this guide on how to make a simple camera app in Objective-C,</a> but the Swift equivalent is somewhat lacking.</p>
+
+<p>This guide will demonstrate how to make a similar simple camera app in Swift including simple alerts and some core principles involved in iOS programming.</p>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>A comprehensive guide to the Swift programming language can be found <a href="https://developer.apple.com/library/ios/documentation/Swift/Conceptual/Swift_Programming_Language/index.html">here</a>, or you can use this handy <a href="http://cdn1.raywenderlich.com/wp-content/uploads/2014/06/RW-Swift-Cheatsheet-0_5.pdf">cheat sheet.</a> The syntax should be familiar to anyone who has experience with an object-oriented programming language.</p>
+
+<p>Of course, you’ll need to be working in OSX with the latest version of Xcode. If you wish to test apps on hardware, you’ll need an <a href="https://developer.apple.com/programs/ios/">iOS Developer License.</a> The iOS emulator cannot test the camera function.</p>
+
+<p>Apple has also published a very nice guide to <a href="https://developer.apple.com/swift/blog/?id=16">getting a simple photo filtering app up and running in Swift.</a> The application you will have after following the video is a good starting point.</p>
+
+<h2 id="viewcontroller-as-a-delegate">ViewController as a Delegate</h2>
+
+<p>First, extend the ViewController class inside of ViewController.swift to include UINavigationControllerDelegate and UIImagePickerControllerDelegate:</p>
+
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">class</span> <span class="nl">ViewController</span><span class="p">:</span> <span class="bp">UIViewController</span><span class="p">,</span> <span class="bp">UINavigationControllerDelegate</span><span class="p">,</span> <span class="bp">UIImagePickerControllerDelegate</span> <span class="p">{</span></code></pre></div>
+
+<p>Specifying a delegate allows your main ViewController window to call the UIImagePicker and execute actions specific to your app. In this case, it will allow us to retrieve images taken by the camera to replace the image in the default image view. For more on the concept of delegation, see <a href="https://developer.apple.com/library/ios/documentation/general/conceptual/CocoaEncyclopedia/DelegatesandDataSources/DelegatesandDataSources.html">the documentation.</a></p>
+
+<h2 id="call-uiimagepickercontroller">Call UIImagePickerController</h2>
+
+<p>Just like in the demo for the photo filtering app, make a new button and control+click and drag to the ViewController to create a new Action.</p>
+
+<p><img src="/assets/images/ctrlclick.png" alt="" title="AND DRAG!" /></p>
+
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="p">@</span><span class="kt">IBAction</span> <span class="k">func</span> <span class="n">takePicture</span><span class="p">(</span><span class="nl">sender</span><span class="p">:</span> <span class="n">AnyObject</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="bp">UIImagePickerController</span><span class="p">.</span><span class="n">isSourceTypeAvailable</span><span class="p">(</span><span class="n">UIImagePickerControllerSourceType</span><span class="p">.</span><span class="n">Camera</span><span class="p">)){</span>
+        <span class="k">var</span> <span class="n">picker</span> <span class="o">=</span> <span class="bp">UIImagePickerController</span><span class="p">()</span>
+        <span class="n">picker</span><span class="p">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="nb">self</span>
+        <span class="n">picker</span><span class="p">.</span><span class="n">sourceType</span> <span class="o">=</span> <span class="n">UIImagePickerControllerSourceType</span><span class="p">.</span><span class="n">Camera</span>
+        <span class="n">picker</span><span class="p">.</span><span class="n">mediaTypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">kUTTypeImage</span><span class="p">]</span>
+        <span class="n">picker</span><span class="p">.</span><span class="n">allowsEditing</span> <span class="o">=</span> <span class="nb">true</span>
+        <span class="nb">self</span><span class="p">.</span><span class="n">presentViewController</span><span class="p">(</span><span class="n">picker</span><span class="p">,</span> <span class="nl">animated</span><span class="p">:</span> <span class="nb">true</span><span class="p">,</span> <span class="nl">completion</span><span class="p">:</span> <span class="nb">nil</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">else</span><span class="p">{</span>
+        <span class="n">NSLog</span><span class="p">(</span><span class="s">&quot;No Camera.&quot;</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+
+<p>The code first checks to make sure that the camera is available. If it is not, the function ends. Otherwise, it instantiates a new UIImagePickerController, delegates to the ViewController (self). In this example, allowsEditing is set to true, so that the picker will return both the original image as well as a square selection. We then set the sourceType to Camera and the mediaTypes to [kUTTypeImage] and call self to bring up the picker.</p>
+
+<h2 id="bonus-debug-statements-and-alerts">BONUS: Debug Statements and Alerts</h2>
+
+<p>The NSLog statement in the previous code snippet is a good way to get debug information while testing your app. It may be useful to include some sort of alert to the user that the feature requires a camera, in case the user is using a device without a camera or the user has not allowed the app to access the camera. If your app’s functionality is wholly dependend upon devices with cameras, it may be a good idea to limit its App Store availability. Be sure to addAction to the alert in order to allow the user to dismiss it, as this is not included by default.</p>
+
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="n">NSLog</span><span class="p">(</span><span class="s">&quot;No Camera.&quot;</span><span class="p">)</span>
+<span class="k">var</span> <span class="n">alert</span> <span class="o">=</span> <span class="n">UIAlertController</span><span class="p">(</span><span class="nl">title</span><span class="p">:</span> <span class="s">&quot;No camera&quot;</span><span class="p">,</span> <span class="nl">message</span><span class="p">:</span> <span class="s">&quot;Please allow this app the use of your camera in settings or buy a device that has a camera.&quot;</span><span class="p">,</span> <span class="nl">preferredStyle</span><span class="p">:</span> <span class="n">UIAlertControllerStyle</span><span class="p">.</span><span class="n">Alert</span><span class="p">)</span>
+<span class="n">alert</span><span class="p">.</span><span class="n">addAction</span><span class="p">(</span><span class="n">UIAlertAction</span><span class="p">(</span><span class="nl">title</span><span class="p">:</span> <span class="s">&quot;Dismiss&quot;</span><span class="p">,</span> <span class="nl">style</span><span class="p">:</span> <span class="n">UIAlertActionStyle</span><span class="p">.</span><span class="n">Default</span><span class="p">,</span> <span class="nl">handler</span><span class="p">:</span> <span class="nb">nil</span><span class="p">))</span>
+<span class="nb">self</span><span class="p">.</span><span class="n">presentViewController</span><span class="p">(</span><span class="n">alert</span><span class="p">,</span> <span class="nl">animated</span><span class="p">:</span> <span class="nb">true</span><span class="p">,</span> <span class="nl">completion</span><span class="p">:</span> <span class="nb">nil</span><span class="p">)</span></code></pre></div>
+
+<h2 id="handle-the-results">Handle the Results</h2>
+
+<p><a href="https://developer.apple.com/library/ios/documentation/UIKit/Reference/UIImagePickerControllerDelegate_Protocol/index.html">UIImagePickerControllerDelegate</a> objects have two functions to handle output from the picker (in this case, the camera). One where the camera returns some media, and the other where the user cancels. Copy the following inside the ViewController class in ViewController.swift</p>
+
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">func</span> <span class="nf">imagePickerController</span><span class="p">(</span><span class="nl">picker</span><span class="p">:</span> <span class="bp">UIImagePickerController</span><span class="p">,</span> <span class="n">didFinishPickingMediaWithInfo</span> <span class="nl">info</span><span class="p">:</span> <span class="bp">NSDictionary</span><span class="o">!</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">NSLog</span><span class="p">(</span><span class="s">&quot;Received image from camera&quot;</span><span class="p">)</span>
+    <span class="k">let</span> <span class="n">mediaType</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="n">UIImagePickerControllerMediaType</span><span class="p">]</span> <span class="kt">as</span> <span class="n">String</span>
+    <span class="k">var</span> <span class="nl">originalImage</span><span class="p">:</span><span class="bp">UIImage</span><span class="o">?</span><span class="p">,</span> <span class="nl">editedImage</span><span class="p">:</span><span class="bp">UIImage</span><span class="o">?</span><span class="p">,</span> <span class="nl">imageToSave</span><span class="p">:</span><span class="bp">UIImage</span><span class="o">?</span>
+    <span class="k">let</span> <span class="nl">compResult</span><span class="p">:</span><span class="n">CFComparisonResult</span> <span class="o">=</span> <span class="n">CFStringCompare</span><span class="p">(</span><span class="n">mediaType</span> <span class="kt">as</span> <span class="bp">NSString</span><span class="o">!</span><span class="p">,</span> <span class="n">kUTTypeImage</span><span class="p">,</span> <span class="n">CFStringCompareFlags</span><span class="p">.</span><span class="n">CompareCaseInsensitive</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="n">compResult</span> <span class="o">==</span> <span class="n">CFComparisonResult</span><span class="p">.</span><span class="n">CompareEqualTo</span> <span class="p">)</span> <span class="p">{</span>
+        
+        <span class="n">editedImage</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="n">UIImagePickerControllerEditedImage</span><span class="p">]</span> <span class="kt">as</span> <span class="bp">UIImage</span><span class="o">?</span>
+        <span class="n">originalImage</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="n">UIImagePickerControllerOriginalImage</span><span class="p">]</span> <span class="kt">as</span> <span class="bp">UIImage</span><span class="o">?</span>
+        
+        <span class="k">if</span> <span class="p">(</span> <span class="n">editedImage</span> <span class="o">!=</span> <span class="nb">nil</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="n">imageToSave</span> <span class="o">=</span> <span class="n">editedImage</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="n">imageToSave</span> <span class="o">=</span> <span class="n">originalImage</span>
+        <span class="p">}</span>
+        <span class="n">imgView</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">imageToSave</span>
+        <span class="n">imgView</span><span class="p">.</span><span class="n">reloadInputViews</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="n">picker</span><span class="p">.</span><span class="n">dismissViewControllerAnimated</span><span class="p">(</span><span class="nb">true</span><span class="p">,</span> <span class="nl">completion</span><span class="p">:</span> <span class="nb">nil</span><span class="p">)</span>
+<span class="p">}</span></code></pre></div>
+
+<p>The above function activates when the picker returns with media. If you set the picker to allow editing, the picker will return with both the original as well as the edited image. It then does additional error checking to make sure the mediaType is correct before retreiving the image data. The code checks if the edited image is nil and defaults to the original image if it is. Otherwise, it sets an imageView object (control-dragged to your view as an outlet, as in the Apple demo) to the captured image. At this point you can have your code do anything you want with the image data, including save it to the camera roll with UIImageWriteToSavedPhotosAlbum, saved to the filesystem of your app, sent to the cloud, and so on.</p>
+
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">func</span> <span class="nf">imagePickerControllerDidCancel</span><span class="p">(</span><span class="nl">picker</span><span class="p">:</span> <span class="bp">UIImagePickerController</span><span class="p">)</span> <span class="p">{</span>
+	<span class="n">picker</span><span class="p">.</span><span class="n">dismissViewControllerAnimated</span><span class="p">(</span><span class="nb">true</span><span class="p">,</span> <span class="nl">completion</span><span class="p">:</span> <span class="nb">nil</span><span class="p">)</span>
+<span class="p">}</span></code></pre></div>
+
+<p>This function handles cases where the user decides to cancel the camera, and from my tests it seems to be entirely optional. The ViewController will dismiss itself upon Cancel. However it seems to be a best practice to include a handler for this case as well as any additional instructions.</p>
+
+<p>At this point, my app looks like this:
+<img src="/assets/images/appfilter.png" alt="" /></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>The concept illustrated above is useful in any situation where you want to retrieve an image from the user’s camera. A further extension of this project would be to allow the user to select either a picture from the Photo Gallery or the Camera.</p>
+
+<p><em>Hint: use UIImagePickerControllerSourceTypePhotoLibrary (Seriously.)</em></p>
+
+<p>In the case of applications which may require camera access from many different views, it may be more efficient to impliment the above code as its own class. The image below represents my current efforts to access the camera that way:</p>
+
+<p><img src="https://farm2.staticflickr.com/1001/1357938629_5c217662d3_z_d.jpg" alt="" title="https://www.flickr.com/photos/rickyromero/1357938629" /></p>
+
+<p><em>Header image by <a href="https://www.flickr.com/photos/gabrielap93/6205964186">gabrielap93</a></em></p>
+
+<p>Code in this how-to modified from Harold Dost III’s <a href="http://blog.raastech.com/2014/09/using-camera-in-ios-8-with-swift.html">CameraVC class</a></p>
+
+<p>For more information on how to take direct control of the iOS camera in Swift using newly-available APIs in iOS8, see <a href="http://jamesonquave.com/blog/taking-control-of-the-iphone-camera-in-ios-8-with-swift-part-1/">this two-part guide.</a></p>
+
+        </section>
+        <footer class="post-footer">
+          <section class="share">
+            
+              
+                <a class="icon-twitter" href="http://twitter.com/share?text=Using+the+iOS+Camera+with+Swift&amp;url=http://tjsander.github.io/swift-camera"
+                  onclick="window.open(this.href, 'twitter-share', 'width=550,height=255');return false;">
+                <i class="fa fa-twitter"></i><span class="hidden">twitter</span>
+                </a>
+              
+            
+              
+            
+          </section>
+        </footer>
+        <div class="bottom-teaser cf">
+          <div class="isLeft">
+            <h5 class="index-headline featured"><span>Written by</span></h5>
+            <section class="author">
+              <div class="author-image" style="background-image: url(/assets/images/travisedit.png)">Blog Logo</div>
+              <h4>Travis J. Sanders</h4>
+              <p class="bio"></p>
+              <hr>
+              <p class="published">Published <time datetime="2014-11-16 00:00">16 Nov 2014</time></p>
+            </section>
+          </div>
+          
+          <div class="isRight">
+            <h5 class="index-headline featured"><span>Supported by</span></h5>
+            <footer class="site-footer">
+              <section class="poweredby">Proudly published with <a href="http://jekyllrb.com"> Jekyll</a></section>
+              <a class="subscribe" href="/feed.xml"> <span class="tooltip"> <i class="fa fa-rss"></i> You should subscribe to my feed.</span></a>
+              <div class="inner">
+                <section class="copyright">All content copyright <a href="/">Travis J. Sanders</a> &copy; 2014<br>All rights reserved.</section>
+              </div>
+            </footer>
+          </div>
+        </div>
+      </article>
+    </main>
+    <div class="bottom-closer">
+      <div class="background-closer-image"  style="background-image: url(/assets/images/20130410-194629.jpg)">
+      Image
+    </div>
+    <div class="inner">
+      <h1 class="blog-title">Travis J. Sanders writes</h1>
+      <h2 class="blog-description">code and thoughts and fictions
+</h2>
+      <a href="/" class="btn">Back to Overview</a>
+    </div>
+    </div>
+  </body>
+</html>

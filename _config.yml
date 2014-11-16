@@ -5,6 +5,9 @@ highlighter: pygments
 kramdown:
   input: GFM
 
+gems:
+  - jemoji
+
 # Site settings
 title: "Travis J. Sanders writes"
 description: > # this means to ignore newlines until "email:"

@@ -6,15 +6,133 @@
 </description>
     <link>http://tjsander.github.io/</link>
     <atom:link href="http://tjsander.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Wed, 17 Sep 2014 01:05:33 -0700</pubDate>
-    <lastBuildDate>Wed, 17 Sep 2014 01:05:33 -0700</lastBuildDate>
+    <pubDate>Sun, 16 Nov 2014 02:00:10 -0800</pubDate>
+    <lastBuildDate>Sun, 16 Nov 2014 02:00:10 -0800</lastBuildDate>
     <generator>Jekyll v2.4.0</generator>
     
       <item>
-        <title>Processes, Threads and Synchronization in the Windows API</title>
-        <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
+        <title>Using the iOS Camera with Swift</title>
+        <description>&lt;p&gt;One of the major barriers to overcome in programming for iOS and other Apple platforms is learning to work with Objective-C, the main language in all Apple operating systems since the release of OSX in 2001. With the recent introduction of the Swift language, this is no longer necessarily the case. In the announcement Apple described Swift as “Objective-C without the C”, which may be a relief to many previously turned off by Objective-C’s unique syntax (or C pointers).&lt;/p&gt;
 
-&lt;p&gt;Although in 2014 Windows-based mobile devices only account for 2.5% of all mobile traffic, approximately one in three web servers runs a Windows variant. Currently, Windows-based devices represent roughly 59% of all web traffic, and (by very rough estimate) 80% of all personal computer operating systems.&lt;sup id=&quot;fnref:fn-1&quot;&gt;&lt;a href=&quot;#fn:fn-1&quot; class=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+&lt;p&gt;While the introduction of the Swift programming language makes native iOS programming more accessible to those of us with little Objective-C experience, guides on Swift programming for iOS are still relatively sparse. Much of the documentation and an overwhelming majority of community resources are still written in Objective-C. It’s relatively easy to find guides written on how to perform simple tasks using Objective-C, like &lt;a href=&quot;http://www.appcoda.com/ios-programming-camera-iphone-app/&quot;&gt;this guide on how to make a simple camera app in Objective-C,&lt;/a&gt; but the Swift equivalent is somewhat lacking.&lt;/p&gt;
+
+&lt;p&gt;This guide will demonstrate how to make a similar simple camera app in Swift including simple alerts and some core principles involved in iOS programming.&lt;/p&gt;
+
+&lt;h2 id=&quot;getting-started&quot;&gt;Getting Started&lt;/h2&gt;
+
+&lt;p&gt;A comprehensive guide to the Swift programming language can be found &lt;a href=&quot;https://developer.apple.com/library/ios/documentation/Swift/Conceptual/Swift_Programming_Language/index.html&quot;&gt;here&lt;/a&gt;, or you can use this handy &lt;a href=&quot;http://cdn1.raywenderlich.com/wp-content/uploads/2014/06/RW-Swift-Cheatsheet-0_5.pdf&quot;&gt;cheat sheet.&lt;/a&gt; The syntax should be familiar to anyone who has experience with an object-oriented programming language.&lt;/p&gt;
+
+&lt;p&gt;Of course, you’ll need to be working in OSX with the latest version of Xcode. If you wish to test apps on hardware, you’ll need an &lt;a href=&quot;https://developer.apple.com/programs/ios/&quot;&gt;iOS Developer License.&lt;/a&gt; The iOS emulator cannot test the camera function.&lt;/p&gt;
+
+&lt;p&gt;Apple has also published a very nice guide to &lt;a href=&quot;https://developer.apple.com/swift/blog/?id=16&quot;&gt;getting a simple photo filtering app up and running in Swift.&lt;/a&gt; The application you will have after following the video is a good starting point.&lt;/p&gt;
+
+&lt;h2 id=&quot;viewcontroller-as-a-delegate&quot;&gt;ViewController as a Delegate&lt;/h2&gt;
+
+&lt;p&gt;First, extend the ViewController class inside of ViewController.swift to include UINavigationControllerDelegate and UIImagePickerControllerDelegate:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;ViewController&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;UIViewController&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;UINavigationControllerDelegate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;UIImagePickerControllerDelegate&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Specifying a delegate allows your main ViewController window to call the UIImagePicker and execute actions specific to your app. In this case, it will allow us to retrieve images taken by the camera to replace the image in the default image view. For more on the concept of delegation, see &lt;a href=&quot;https://developer.apple.com/library/ios/documentation/general/conceptual/CocoaEncyclopedia/DelegatesandDataSources/DelegatesandDataSources.html&quot;&gt;the documentation.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;call-uiimagepickercontroller&quot;&gt;Call UIImagePickerController&lt;/h2&gt;
+
+&lt;p&gt;Just like in the demo for the photo filtering app, make a new button and control+click and drag to the ViewController to create a new Action.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/ctrlclick.png&quot; alt=&quot;&quot; title=&quot;AND DRAG!&quot; /&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;p&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;IBAction&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;takePicture&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;sender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AnyObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;UIImagePickerController&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isSourceTypeAvailable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UIImagePickerControllerSourceType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Camera&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)){&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;picker&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;UIImagePickerController&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;picker&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;delegate&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;picker&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourceType&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UIImagePickerControllerSourceType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Camera&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;picker&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mediaTypes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kUTTypeImage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;picker&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;allowsEditing&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;presentViewController&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;picker&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;animated&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;completion&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;NSLog&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;No Camera.&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The code first checks to make sure that the camera is available. If it is not, the function ends. Otherwise, it instantiates a new UIImagePickerController, delegates to the ViewController (self). In this example, allowsEditing is set to true, so that the picker will return both the original image as well as a square selection. We then set the sourceType to Camera and the mediaTypes to [kUTTypeImage] and call self to bring up the picker.&lt;/p&gt;
+
+&lt;h2 id=&quot;bonus-debug-statements-and-alerts&quot;&gt;BONUS: Debug Statements and Alerts&lt;/h2&gt;
+
+&lt;p&gt;The NSLog statement in the previous code snippet is a good way to get debug information while testing your app. It may be useful to include some sort of alert to the user that the feature requires a camera, in case the user is using a device without a camera or the user has not allowed the app to access the camera. If your app’s functionality is wholly dependend upon devices with cameras, it may be a good idea to limit its App Store availability. Be sure to addAction to the alert in order to allow the user to dismiss it, as this is not included by default.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;n&quot;&gt;NSLog&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;No Camera.&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alert&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UIAlertController&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;No camera&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;Please allow this app the use of your camera in settings or buy a device that has a camera.&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;preferredStyle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UIAlertControllerStyle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Alert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;alert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;addAction&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UIAlertAction&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;Dismiss&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;style&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UIAlertActionStyle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Default&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;presentViewController&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;animated&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;completion&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;handle-the-results&quot;&gt;Handle the Results&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://developer.apple.com/library/ios/documentation/UIKit/Reference/UIImagePickerControllerDelegate_Protocol/index.html&quot;&gt;UIImagePickerControllerDelegate&lt;/a&gt; objects have two functions to handle output from the picker (in this case, the camera). One where the camera returns some media, and the other where the user cancels. Copy the following inside the ViewController class in ViewController.swift&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;imagePickerController&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;picker&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;UIImagePickerController&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;didFinishPickingMediaWithInfo&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;info&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSDictionary&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;NSLog&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Received image from camera&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mediaType&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;info&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UIImagePickerControllerMediaType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;originalImage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;UIImage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;?&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;editedImage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;UIImage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;?&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;imageToSave&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;UIImage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;?&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;compResult&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CFComparisonResult&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CFStringCompare&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mediaType&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kUTTypeImage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CFStringCompareFlags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CompareCaseInsensitive&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compResult&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CFComparisonResult&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CompareEqualTo&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        
+        &lt;span class=&quot;n&quot;&gt;editedImage&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;info&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UIImagePickerControllerEditedImage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;UIImage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;?&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;originalImage&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;info&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UIImagePickerControllerOriginalImage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;UIImage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;?&lt;/span&gt;
+        
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;editedImage&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;imageToSave&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;editedImage&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;imageToSave&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;originalImage&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;imgView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;image&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;imageToSave&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;imgView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reloadInputViews&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;picker&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dismissViewControllerAnimated&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;completion&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above function activates when the picker returns with media. If you set the picker to allow editing, the picker will return with both the original as well as the edited image. It then does additional error checking to make sure the mediaType is correct before retreiving the image data. The code checks if the edited image is nil and defaults to the original image if it is. Otherwise, it sets an imageView object (control-dragged to your view as an outlet, as in the Apple demo) to the captured image. At this point you can have your code do anything you want with the image data, including save it to the camera roll with UIImageWriteToSavedPhotosAlbum, saved to the filesystem of your app, sent to the cloud, and so on.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;imagePickerControllerDidCancel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;picker&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;UIImagePickerController&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;picker&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dismissViewControllerAnimated&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;completion&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This function handles cases where the user decides to cancel the camera, and from my tests it seems to be entirely optional. The ViewController will dismiss itself upon Cancel. However it seems to be a best practice to include a handler for this case as well as any additional instructions.&lt;/p&gt;
+
+&lt;p&gt;At this point, my app looks like this:
+&lt;img src=&quot;/assets/images/appfilter.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;The concept illustrated above is useful in any situation where you want to retrieve an image from the user’s camera. A further extension of this project would be to allow the user to select either a picture from the Photo Gallery or the Camera.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Hint: use UIImagePickerControllerSourceTypePhotoLibrary (Seriously.)&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;In the case of applications which may require camera access from many different views, it may be more efficient to impliment the above code as its own class. The image below represents my current efforts to access the camera that way:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://farm2.staticflickr.com/1001/1357938629_5c217662d3_z_d.jpg&quot; alt=&quot;&quot; title=&quot;https://www.flickr.com/photos/rickyromero/1357938629&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Header image by &lt;a href=&quot;https://www.flickr.com/photos/gabrielap93/6205964186&quot;&gt;gabrielap93&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Code in this how-to modified from Harold Dost III’s &lt;a href=&quot;http://blog.raastech.com/2014/09/using-camera-in-ios-8-with-swift.html&quot;&gt;CameraVC class&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;For more information on how to take direct control of the iOS camera in Swift using newly-available APIs in iOS8, see &lt;a href=&quot;http://jamesonquave.com/blog/taking-control-of-the-iphone-camera-in-ios-8-with-swift-part-1/&quot;&gt;this two-part guide.&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Sun, 16 Nov 2014 00:00:00 -0800</pubDate>
+        <link>http://tjsander.github.io/swift-camera</link>
+        <guid isPermaLink="true">http://tjsander.github.io/swift-camera</guid>
+        
+        <category>code</category>
+        
+        <category>ios</category>
+        
+        <category>featured</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>Multiprocessing in the Win32 API</title>
+        <description>&lt;p&gt;Although in 2014 Windows-based mobile devices only account for 2.5% of all mobile traffic, approximately one in three web servers runs a Windows variant. Currently, Windows-based devices represent roughly 59% of all web traffic, and (by very rough estimate) 80% of all personal computer operating systems.&lt;sup id=&quot;fnref:fn-1&quot;&gt;&lt;a href=&quot;#fn:fn-1&quot; class=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
 
 &lt;p&gt;While it would be extremely convenient for programmers striving to write portable code if all systems complied to the same meritocratic standard, the hard fact of life is that the proprietary Windows API remains the de-facto ”market standard” of personal computer operating systems. In contrast to the POSIX standard, Windows differs in both implementation and execution.&lt;sup id=&quot;fnref:fn-2&quot;&gt;&lt;a href=&quot;#fn:fn-2&quot; class=&quot;footnote&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
 
@@ -134,7 +252,7 @@
 
 &lt;p&gt;Likewise, the APIs for both branches share a common set of tools, though they differ in implementation and interface, they are fundamentally the same tools. Unless you are writing an OS, arguing over which of the two is the ”better” implementation is somewhat moot, as you will always be limited by the platform you are developing for. If you have the time, it is almost always to the programmer’s advantage to write native code rather than emulate a foreign environment for convenience.&lt;sup id=&quot;fnref:fn-19&quot;&gt;&lt;a href=&quot;#fn:fn-19&quot; class=&quot;footnote&quot;&gt;19&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
 
-&lt;p&gt;Header image @&lt;a href=&quot;https://www.flickr.com/photos/flyzipper/115834464/&quot;&gt;flyzipper&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Header image by &lt;a href=&quot;https://www.flickr.com/photos/30006834@N05/5265589046/&quot;&gt;Iman Khalili&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
 
 &lt;div class=&quot;footnotes&quot;&gt;
   &lt;ol&gt;
@@ -210,7 +328,7 @@
       </item>
     
       <item>
-        <title>Getting Started with Twitter in Temboo [PHP]</title>
+        <title>Using Twitter with Temboo [PHP]</title>
         <description>&lt;h3 id=&quot;third-party-apis-are-not-easyfun-to-work-with&quot;&gt;Third-party APIs are not easy/fun to work with&lt;/h3&gt;
 
 &lt;p&gt;From what little web-development experience I have, I can tell that learning new APIs can be a complicated, frustrating process. There doesn’t seem to be a universal access procedure, and the quality of documentation varies greatly.&lt;/p&gt;
@@ -292,6 +410,8 @@ You can find your Temboo access information &lt;a href=&quot;https://temboo.com/
 &lt;p&gt;Temboo free accounts are limited to 1000 calls and 512 MB a month, so I wouldn’t recommend it for sites that receive a lot of hits or applications that are going to be making more than 1 call every 30 minutes on average, unless you’re willing to pay $10/month for 10,000 calls. Just playing around with my simple app, I ran up 91 calls in a couple of days with testing.&lt;/p&gt;
 
 &lt;p&gt;I’m currently using php session caching to reduce the number of calls the #batfleck code makes. In fact, the Twitter REST API documentation states that Twitter limits search queries to 180 per 15 minutes and recommends caching to avoid limitations.&lt;/p&gt;
+
+&lt;p&gt;Header image &lt;a href=&quot;https://www.flickr.com/photos/blmiers2/6757751165/&quot;&gt;@blmiers2&lt;/a&gt;&lt;/p&gt;
 </description>
         <pubDate>Tue, 16 Sep 2014 00:00:00 -0700</pubDate>
         <link>http://tjsander.github.io/temboo-twitter.html</link>
@@ -342,14 +462,15 @@ You can find your Temboo access information &lt;a href=&quot;https://temboo.com/
         
         <category>tech</category>
         
-        <category>featured</category>
-        
         
       </item>
     
       <item>
         <title>My First Jekyll Post!</title>
-        <description>&lt;h4 id=&quot;testing-12345&quot;&gt;Testing 12345…&lt;/h4&gt;
+        <description>&lt;p&gt;(╯°□°)╯︵ ┻━┻&lt;/p&gt;
+
+&lt;h4 id=&quot;testing-12345&quot;&gt;Testing 12345…&lt;/h4&gt;
+&lt;p&gt;I give this plugin two &lt;img class=&quot;emoji&quot; title=&quot;:+1:&quot; alt=&quot;:+1:&quot; src=&quot;https://assets.github.com/images/icons/emoji/unicode/1f44d.png&quot; height=&quot;20&quot; width=&quot;20&quot; align=&quot;absmiddle&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Hello world! Here is some C code! (This is a sandbox post.)&lt;/p&gt;
 
@@ -388,7 +509,7 @@ You can find your Temboo access information &lt;a href=&quot;https://temboo.com/
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;And here is a picture:
-&lt;img src=&quot;/assets/images/ignore.jpg&quot; alt=&quot;IGNORE ME&quot; title=&quot;IGNORE ME&quot; /&gt;&lt;/p&gt;
+&lt;img src=&quot;/assets/images/ignore.jpg&quot; alt=&quot;&quot; title=&quot;IGNORE ME&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Markdown is pretty alright.&lt;/p&gt;
 </description>
