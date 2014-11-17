@@ -30,7 +30,7 @@ class ViewController: UIViewController, UINavigationControllerDelegate, UIImageP
 
 Specifying a delegate allows your main ViewController window to call the UIImagePicker and execute actions specific to your app. In this case, it will allow us to retrieve images taken by the camera to replace the image in the default image view. For more on the concept of delegation, see [the documentation.](https://developer.apple.com/library/ios/documentation/general/conceptual/CocoaEncyclopedia/DelegatesandDataSources/DelegatesandDataSources.html)
 
-## Call UIImagePickerController
+## Call the Camera
 
 Just like in the demo for the photo filtering app, make a new button and control+click and drag to the ViewController to create a new Action.
 

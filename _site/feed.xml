@@ -6,8 +6,8 @@
 </description>
     <link>http://tjsander.github.io/</link>
     <atom:link href="http://tjsander.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sun, 16 Nov 2014 16:02:33 -0800</pubDate>
-    <lastBuildDate>Sun, 16 Nov 2014 16:02:33 -0800</lastBuildDate>
+    <pubDate>Sun, 16 Nov 2014 16:07:39 -0800</pubDate>
+    <lastBuildDate>Sun, 16 Nov 2014 16:07:39 -0800</lastBuildDate>
     <generator>Jekyll v2.4.0</generator>
     
       <item>
@@ -34,7 +34,7 @@
 
 &lt;p&gt;Specifying a delegate allows your main ViewController window to call the UIImagePicker and execute actions specific to your app. In this case, it will allow us to retrieve images taken by the camera to replace the image in the default image view. For more on the concept of delegation, see &lt;a href=&quot;https://developer.apple.com/library/ios/documentation/general/conceptual/CocoaEncyclopedia/DelegatesandDataSources/DelegatesandDataSources.html&quot;&gt;the documentation.&lt;/a&gt;&lt;/p&gt;
 
-&lt;h2 id=&quot;call-uiimagepickercontroller&quot;&gt;Call UIImagePickerController&lt;/h2&gt;
+&lt;h2 id=&quot;call-the-camera&quot;&gt;Call the Camera&lt;/h2&gt;
 
 &lt;p&gt;Just like in the demo for the photo filtering app, make a new button and control+click and drag to the ViewController to create a new Action.&lt;/p&gt;
 
