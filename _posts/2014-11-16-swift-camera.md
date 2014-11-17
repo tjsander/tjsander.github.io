@@ -120,3 +120,4 @@ In the case of applications which may require camera access from many different 
 Code in this how-to modified from Harold Dost III's [CameraVC class](http://blog.raastech.com/2014/09/using-camera-in-ios-8-with-swift.html)
 
 For more information on how to take direct control of the iOS camera in Swift using newly-available APIs in iOS8, see [this two-part guide.](http://jamesonquave.com/blog/taking-control-of-the-iphone-camera-in-ios-8-with-swift-part-1/)
+

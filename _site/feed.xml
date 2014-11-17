@@ -6,8 +6,8 @@
 </description>
     <link>http://tjsander.github.io/</link>
     <atom:link href="http://tjsander.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sun, 16 Nov 2014 02:00:10 -0800</pubDate>
-    <lastBuildDate>Sun, 16 Nov 2014 02:00:10 -0800</lastBuildDate>
+    <pubDate>Sun, 16 Nov 2014 16:02:33 -0800</pubDate>
+    <lastBuildDate>Sun, 16 Nov 2014 16:02:33 -0800</lastBuildDate>
     <generator>Jekyll v2.4.0</generator>
     
       <item>
@@ -116,6 +116,7 @@
 &lt;p&gt;Code in this how-to modified from Harold Dost III’s &lt;a href=&quot;http://blog.raastech.com/2014/09/using-camera-in-ios-8-with-swift.html&quot;&gt;CameraVC class&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;For more information on how to take direct control of the iOS camera in Swift using newly-available APIs in iOS8, see &lt;a href=&quot;http://jamesonquave.com/blog/taking-control-of-the-iphone-camera-in-ios-8-with-swift-part-1/&quot;&gt;this two-part guide.&lt;/a&gt;&lt;/p&gt;
+
 </description>
         <pubDate>Sun, 16 Nov 2014 00:00:00 -0800</pubDate>
         <link>http://tjsander.github.io/swift-camera</link>
