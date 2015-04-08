@@ -5,7 +5,7 @@ permalink: /about/
 image: /assets/images/20130410-194629.jpg
 ---
 
-I am currently a full-time student pursuing a second bachelors degree in computer science. I am looking for an opportunity to put my new skills to work and get a taste for many different areas of software development. I am especially interested in embedded systems.
+I recently completed a second bachelors degree in computer science. I am looking for an opportunity to put my new skills to work and get a taste for many different areas of software development. I am especially interested in embedded/wearable systems and the intersection of embedded and big data.
 
 I have always been fascinated with the way things work, and I take everything I own apart. 
 
